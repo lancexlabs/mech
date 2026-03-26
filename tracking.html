@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Track Your Service | QuickFix Auto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f9 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Modern Glassmorphism Navigation */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #1a2c3e;
+        }
+
+        .logo-text span {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .nav-links a:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hero-section h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1a2c3e 0%, #667eea 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-section p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        /* Search Card */
+        .search-card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .search-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: #1a2c3e;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 2.8rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 24px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0 2rem;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            min-height: 52px;
+        }
+
+        .search-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Result Card */
+        .result-card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+        }
+
+        /* Status Header */
+        .status-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem;
+            color: white;
+        }
+
+        .booking-id-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .status-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .current-status {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Progress Timeline */
+        .progress-timeline {
+            padding: 2rem;
+            background: white;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: #1a2c3e;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .timeline-steps {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline-steps::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #667eea 0%, #e5e7eb 100%);
+        }
+
+        .timeline-step {
+            position: relative;
+            padding-bottom: 1.5rem;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .timeline-step.completed {
+            opacity: 1;
+        }
+
+        .timeline-step.active {
+            opacity: 1;
+        }
+
+        .timeline-step:last-child {
+            padding-bottom: 0;
+        }
+
+        .step-marker {
+            position: absolute;
+            left: -2rem;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .timeline-step.completed .step-marker {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .timeline-step.active .step-marker {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        .step-content {
+            padding-left: 0.5rem;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #1a2c3e;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-date {
+            font-size: 0.7rem;
+            color: #9ca3af;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+        }
+
+        /* Booking Details */
+        .booking-details {
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .detail-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .detail-info {
+            flex: 1;
+        }
+
+        .detail-label {
+            font-size: 0.7rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #1a2c3e;
+            font-size: 0.9rem;
+        }
+
+        /* Quotation Card */
+        .quotation-card {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #fff9e8 0%, #fff5e0 100%);
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .quotation-title {
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quote-breakdown {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .breakdown-row:last-child {
+            border-bottom: none;
+        }
+
+        .total-row {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #d97706;
+            border-top: 2px solid #fef3c7;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+        }
+
+        .quote-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-accept {
+            flex: 1;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reject {
+            flex: 1;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-accept:active, .btn-reject:active {
+            transform: scale(0.97);
+        }
+
+        /* Final Image */
+        .final-image-section {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .final-image-section h4 {
+            margin-bottom: 1rem;
+            color: #1a2c3e;
+        }
+
+        .final-image {
+            max-width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Error State */
+        .error-card {
+            background: white;
+            border-radius: 32px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: #ef4444;
+            font-size: 2rem;
+        }
+
+        /* Loading State */
+        .loading-card {
+            background: white;
+            border-radius: 32px;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .search-card {
+                padding: 1.5rem;
+            }
+
+            .search-input-group {
+                flex-direction: column;
+            }
+
+            .search-btn {
+                justify-content: center;
+                padding: 0.8rem;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .timeline-steps {
+                padding-left: 1.5rem;
+            }
+
+            .step-marker {
+                left: -1.5rem;
+                width: 1.5rem;
+                height: 1.5rem;
+                font-size: 0.7rem;
+            }
+
+            .nav-links a span {
+                display: none;
+            }
+
+            .nav-links a i {
+                font-size: 1.2rem;
+            }
+
+            .hero-section h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="logo-text">
+                    Quick<span>Fix</span>
+                </div>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-calendar-plus"></i> <span>Book</span></a></li>
+                <li><a href="tracking.html" class="active"><i class="fas fa-map-marker-alt"></i> <span>Track</span></a></li>
+                <li><a href="admin.html"><i class="fas fa-user-cog"></i> <span>Admin</span></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero-section">
+            <h1>Track Your Service</h1>
+            <p>Enter your booking ID or phone number to get real-time updates</p>
+        </div>
+
+        <div class="search-card">
+            <div class="search-label">
+                <i class="fas fa-search"></i>
+                <span>Search your booking</span>
+            </div>
+            <div class="search-input-group">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Booking ID or Phone Number">
+                </div>
+                <button id="searchBtn" class="search-btn">
+                    <i class="fas fa-search"></i> Track Now
+                </button>
+            </div>
+        </div>
+
+        <div id="resultContainer"></div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 QuickFix Auto. Professional auto care you can trust.</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where, getDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLT2q9eTZMnmoxOoKAjJ2hhEbY5cqKZQI",
+            authDomain: "mechshop-d84f0.firebaseapp.com",
+            projectId: "mechshop-d84f0",
+            storageBucket: "mechshop-d84f0.firebasestorage.app",
+            messagingSenderId: "351961097826",
+            appId: "1:351961097826:web:75de4b8ff69185ad55533b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const statusSteps = [
+            "Pending",
+            "Pickup Scheduled",
+            "On the Way",
+            "Picked",
+            "In Progress",
+            "Waiting Parts",
+            "Quotation Sent",
+            "Quotation Rejected",
+            "Completed"
+        ];
+
+        async function getBookingByKey(key) {
+            try {
+                // Try as document ID first
+                const docSnap = await getDoc(doc(db, "bookings", key));
+                if (docSnap.exists()) {
+                    return { id: docSnap.id, ...docSnap.data() };
+                }
+                
+                // Search by phone number
+                const q = query(collection(db, "bookings"), where("phone", "==", key));
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    const docData = querySnapshot.docs[0];
+                    return { id: docData.id, ...docData.data() };
+                }
+                
+                return null;
+            } catch (error) {
+                console.error("Error:", error);
+                return null;
+            }
+        }
+
+        async function updateQuotationResponse(bookingId, accepted) {
+            const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js");
+            await updateDoc(doc(db, "bookings", bookingId), {
+                quotationAccepted: accepted,
+                status: accepted ? "In Progress" : "Quotation Rejected"
+            });
+        }
+
+        function getStatusIcon(status) {
+            const icons = {
+                'Pending': '<i class="fas fa-clock"></i>',
+                'Pickup Scheduled': '<i class="fas fa-calendar-check"></i>',
+                'On the Way': '<i class="fas fa-truck"></i>',
+                'Picked': '<i class="fas fa-car-side"></i>',
+                'In Progress': '<i class="fas fa-wrench"></i>',
+                'Waiting Parts': '<i class="fas fa-box"></i>',
+                'Quotation Sent': '<i class="fas fa-file-invoice-dollar"></i>',
+                'Quotation Rejected': '<i class="fas fa-times-circle"></i>',
+                'Completed': '<i class="fas fa-check-circle"></i>'
+            };
+            return icons[status] || '<i class="fas fa-circle"></i>';
+        }
+
+        function renderResult(booking) {
+            const container = document.getElementById('resultContainer');
+            const currentStatusIndex = statusSteps.findIndex(s => s === booking.status);
+            
+            let timelineHtml = '';
+            statusSteps.forEach((step, index) => {
+                let stepClass = '';
+                if (index < currentStatusIndex) stepClass = 'completed';
+                else if (index === currentStatusIndex) stepClass = 'active';
+                else stepClass = '';
+                
+                timelineHtml += `
+                    <div class="timeline-step ${stepClass}">
+                        <div class="step-marker">
+                            ${stepClass === 'completed' ? '<i class="fas fa-check"></i>' : getStatusIcon(step)}
+                        </div>
+                        <div class="step-content">
+                            <div class="step-title">${step}</div>
+                            ${index === currentStatusIndex ? '<div class="step-date">Current Status</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            let quotationHtml = '';
+            if (booking.quotationDetails && booking.quotationAccepted === null) {
+                const qd = booking.quotationDetails;
+                quotationHtml = `
+                    <div class="quotation-card">
+                        <div class="quotation-title">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>Quotation Received</span>
+                        </div>
+                        <div class="quote-breakdown">
+                            <div class="breakdown-row">
+                                <span>🔧 Labor Charges</span>
+                                <span>₹${qd.labor || 0}</span>
+                            </div>
+                            <div class="breakdown-row">
+                                <span>🔩 Parts Cost</span>
+                                <span>₹${qd.parts || 0}</span>
+                            </div>
+                            ${qd.additionalDesc ? `
+                            <div class="breakdown-row">
+                                <span>➕ ${qd.additionalDesc}</span>
+                                <span>₹${qd.additional || 0}</span>
+                            </div>
+                            ` : ''}
+                            <div class="breakdown-row total-row">
+                                <span>Total Amount</span>
+                                <span>₹${qd.total || 0}</span>
+                            </div>
+                        </div>
+                        ${qd.notes ? `<p style="margin-top: 0.5rem; font-size: 0.85rem; color: #6b7280;"><i class="fas fa-sticky-note"></i> ${qd.notes}</p>` : ''}
+                        <div class="quote-actions">
+                            <button class="btn-accept" onclick="handleAccept('${booking.id}')">
+                                <i class="fas fa-check"></i> Accept Quotation
+                            </button>
+                            <button class="btn-reject" onclick="handleReject('${booking.id}')">
+                                <i class="fas fa-times"></i> Reject Quotation
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (booking.quotationAccepted === true) {
+                quotationHtml = `
+                    <div class="quotation-card" style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+                        <div class="quotation-title" style="color: #2e7d32;">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Quotation Accepted</span>
+                        </div>
+                        <p>Your quotation has been accepted. Work is in progress.</p>
+                    </div>
+                `;
+            } else if (booking.quotationAccepted === false) {
+                quotationHtml = `
+                    <div class="quotation-card" style="background: linear-gradient(135deg, #ffebee, #ffcdd2);">
+                        <div class="quotation-title" style="color: #c62828;">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Quotation Rejected</span>
+                        </div>
+                        <p>Please contact the shop for renegotiation.</p>
+                    </div>
+                `;
+            }
+            
+            let finalImageHtml = '';
+            if (booking.finalImageUrl) {
+                finalImageHtml = `
+                    <div class="final-image-section">
+                        <h4><i class="fas fa-camera"></i> Vehicle After Service</h4>
+                        <img src="${booking.finalImageUrl}" alt="Final vehicle image" class="final-image">
+                    </div>
+                `;
+            }
+            
+            // Determine service type display
+            const serviceType = booking.serviceType || 'Self Drop';
+            const pickupInfo = (serviceType === 'Pickup' && booking.pickupAddress) ? `
+                <div class="detail-item">
+                    <div class="detail-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="detail-info">
+                        <div class="detail-label">Pickup Address</div>
+                        <div class="detail-value">${escapeHtml(booking.pickupAddress)}</div>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-icon"><i class="fas fa-clock"></i></div>
+                    <div class="detail-info">
+                        <div class="detail-label">Pickup Time</div>
+                        <div class="detail-value">${booking.pickupTime ? new Date(booking.pickupTime).toLocaleString() : 'Not set'}</div>
+                    </div>
+                </div>
+            ` : '';
+            
+            const html = `
+                <div class="result-card show">
+                    <div class="status-header">
+                        <div class="booking-id-badge">
+                            <i class="fas fa-hashtag"></i> ${booking.id.slice(0, 8)}...
+                        </div>
+                        <h2>Hello, ${escapeHtml(booking.name)}!</h2>
+                        <div class="current-status">
+                            ${getStatusIcon(booking.status)} ${booking.status}
+                        </div>
+                    </div>
+                    
+                    <div class="progress-timeline">
+                        <div class="timeline-title">
+                            <i class="fas fa-chart-line"></i>
+                            Service Progress
+                        </div>
+                        <div class="timeline-steps">
+                            ${timelineHtml}
+                        </div>
+                    </div>
+                    
+                    <div class="booking-details">
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-user"></i></div>
+                                <div class="detail-info">
+                                    <div class="detail-label">Customer Name</div>
+                                    <div class="detail-value">${escapeHtml(booking.name)}</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-phone"></i></div>
+                                <div class="detail-info">
+                                    <div class="detail-label">Phone Number</div>
+                                    <div class="detail-value">${escapeHtml(booking.phone)}</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-car"></i></div>
+                                <div class="detail-info">
+                                    <div class="detail-label">Vehicle Number</div>
+                                    <div class="detail-value">${escapeHtml(booking.vehicle)}</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-tools"></i></div>
+                                <div class="detail-info">
+                                    <div class="detail-label">Service Type</div>
+                                    <div class="detail-value">${serviceType}</div>
+                                </div>
+                            </div>
+                            ${pickupInfo}
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="detail-info">
+                                    <div class="detail-label">Problem Description</div>
+                                    <div class="detail-value">${escapeHtml(booking.problem)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${quotationHtml}
+                    ${finalImageHtml}
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        function renderError(message) {
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = `
+                <div class="error-card">
+                    <div class="error-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>No Booking Found</h3>
+                    <p>${message}</p>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: #6b7280;">
+                        <i class="fas fa-info-circle"></i> Try entering your booking ID or registered phone number
+                    </p>
+                </div>
+            `;
+        }
+        
+        function renderLoading() {
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = `
+                <div class="loading-card">
+                    <div class="spinner"></div>
+                    <p>Searching for your booking...</p>
+                </div>
+            `;
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        window.handleAccept = async (bookingId) => {
+            if (confirm('Are you sure you want to accept this quotation?')) {
+                await updateQuotationResponse(bookingId, true);
+                alert('Quotation accepted! We will start working on your vehicle.');
+                document.getElementById('searchBtn').click();
+            }
+        };
+        
+        window.handleReject = async (bookingId) => {
+            if (confirm('Are you sure you want to reject this quotation?')) {
+                await updateQuotationResponse(bookingId, false);
+                alert('Quotation rejected. Our team will contact you for renegotiation.');
+                document.getElementById('searchBtn').click();
+            }
+        };
+        
+        async function performSearch() {
+            const searchInput = document.getElementById('searchInput').value.trim();
+            if (!searchInput) {
+                renderError('Please enter a booking ID or phone number');
+                return;
+            }
+            
+            renderLoading();
+            
+            const booking = await getBookingByKey(searchInput);
+            
+            if (!booking) {
+                renderError(`No booking found with "${searchInput}". Please check and try again.`);
+                return;
+            }
+            
+            renderResult(booking);
+        }
+        
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+        
+        console.log('✅ Tracking page ready');
+    </script>
+</body>
+</html>

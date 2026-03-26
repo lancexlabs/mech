@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickFix Auto | Book Service</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #667eea;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Booking Card */
+        .booking-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .card-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-header p {
+            opacity: 0.9;
+        }
+
+        .booking-form {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .pickup-fields {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .pickup-fields.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .booking-id {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-family: monospace;
+            font-weight: bold;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: white;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .booking-form {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <span>QuickFix Auto</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active"><i class="fas fa-calendar-plus"></i> Book Service</a></li>
+                <li><a href="tracking.html"><i class="fas fa-map-marker-alt"></i> Track Order</a></li>
+                <li><a href="admin.html"><i class="fas fa-user-cog"></i> Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="booking-card">
+            <div class="card-header">
+                <i class="fas fa-tools" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h1>Book Your Service</h1>
+                <p>Fast, reliable, and professional auto care</p>
+            </div>
+            
+            <div class="booking-form">
+                <form id="bookingForm">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Full Name *</label>
+                        <input type="text" id="name" required placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Phone Number *</label>
+                        <input type="tel" id="phone" required placeholder="+91 98765 43210">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-car"></i> Vehicle Number *</label>
+                        <input type="text" id="vehicle" required placeholder="KA 01 AB 1234">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-exclamation-triangle"></i> Problem Description *</label>
+                        <textarea id="problem" rows="3" placeholder="Describe the issue with your vehicle..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-truck"></i> Service Type *</label>
+                        <select id="serviceType">
+                            <option value="Self Drop">🚗 Self Drop - Bring your vehicle to shop</option>
+                            <option value="Pickup">🚛 Pickup & Drop - We'll collect your vehicle</option>
+                        </select>
+                    </div>
+
+                    <div id="pickupFields" class="pickup-fields">
+                        <div class="form-group">
+                            <label><i class="fas fa-map-marker-alt"></i> Pickup Address *</label>
+                            <input type="text" id="pickupAddress" placeholder="Full address for pickup">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-clock"></i> Preferred Pickup Time *</label>
+                            <input type="datetime-local" id="pickupTime">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-check-circle"></i> Submit Booking
+                    </button>
+
+                    <div id="successMessage" class="success-message">
+                        <i class="fas fa-check-circle"></i> Booking confirmed!
+                        <div id="bookingIdDisplay" class="booking-id"></div>
+                        <small>Save this ID to track your service status</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 QuickFix Auto. Professional auto care you can trust.</p>
+    </div>
+
+    <script type="module">
+        import { addBooking, setupServiceTypeToggle } from './script.js';
+
+        // Setup service type toggle
+        setupServiceTypeToggle();
+
+        // Handle form submission
+        const form = document.getElementById('bookingForm');
+        const successDiv = document.getElementById('successMessage');
+        const bookingIdSpan = document.getElementById('bookingIdDisplay');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const bookingData = {
+                name: document.getElementById('name').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                vehicle: document.getElementById('vehicle').value.trim(),
+                problem: document.getElementById('problem').value.trim(),
+                serviceType: document.getElementById('serviceType').value
+            };
+
+            if (bookingData.serviceType === 'Pickup') {
+                bookingData.pickupAddress = document.getElementById('pickupAddress').value.trim();
+                bookingData.pickupTime = document.getElementById('pickupTime').value;
+            }
+
+            try {
+                const bookingId = await addBooking(bookingData);
+                bookingIdSpan.textContent = `Booking ID: ${bookingId}`;
+                successDiv.classList.add('show');
+                form.reset();
+                document.getElementById('pickupFields').classList.remove('show');
+                
+                // Scroll to success message
+                successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Hide success message after 10 seconds
+                setTimeout(() => {
+                    successDiv.classList.remove('show');
+                }, 10000);
+            } catch (error) {
+                alert('Error submitting booking: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
