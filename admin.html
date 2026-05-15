@@ -2,902 +2,519 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>QuickFix Admin | Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MechTrack — Workshop Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f8;
-            min-height: 100vh;
-        }
-
-        /* Navigation */
-        .navbar {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0.8rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        .logo-text {
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: #1a2c3e;
-        }
-
-        .logo-text span {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 0.8rem;
-            list-style: none;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #4a5568;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 30px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .nav-links a.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .logout-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 0.5rem 1.2rem;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:active {
-            transform: scale(0.97);
-        }
-
-        /* Container */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem;
-        }
-
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.2rem;
-            border-radius: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s;
-            border: 1px solid rgba(102, 126, 234, 0.1);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-header i {
-            font-size: 1.8rem;
-            color: #667eea;
-            opacity: 0.7;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #1a2c3e;
-        }
-
-        .stat-label {
-            color: #6b7280;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        /* Bookings Panel */
-        .bookings-panel {
-            background: white;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .panel-header {
-            padding: 1.2rem 1.5rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .panel-header h2 {
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 0.4rem 1rem;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 30px;
-            color: white;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .filter-btn.active {
-            background: white;
-            color: #667eea;
-        }
-
-        /* Table */
-        .table-wrapper {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 700px;
-        }
-
-        th {
-            background: #f8fafc;
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: #1a2c3e;
-            border-bottom: 2px solid #e2e8f0;
-            font-size: 0.8rem;
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: middle;
-            font-size: 0.85rem;
-        }
-
-        tr:hover {
-            background: #faf5ff;
-        }
-
-        /* Status Select */
-        .status-select {
-            padding: 0.5rem 0.8rem;
-            border-radius: 30px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .status-select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        /* Buttons */
-        .btn-small {
-            padding: 0.5rem 1rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .btn-small:active {
-            transform: scale(0.95);
-        }
-
-        .btn-whatsapp {
-            background: #25D366;
-        }
-
-        .btn-danger {
-            background: #ef4444;
-        }
-
-        /* Upload Section */
-        .upload-section {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .upload-section input[type="file"] {
-            font-size: 0.7rem;
-            padding: 0.3rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-        }
-
-        .view-image {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 0.7rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 1rem;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 28px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            padding: 1.2rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-radius: 28px 28px 0 0;
-            font-weight: 600;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-body input, .modal-body textarea {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            margin: 0.5rem 0;
-            font-size: 0.9rem;
-        }
-
-        .modal-body input:focus, .modal-body textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 0.8rem;
-            border: none;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a2c3e;
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            z-index: 2000;
-            animation: slideUp 0.3s ease;
-            white-space: nowrap;
-        }
-
-        @media (max-width: 768px) {
-            .toast {
-                white-space: normal;
-                max-width: 90%;
-                text-align: center;
-            }
-            
-            .container {
-                padding: 1rem;
-            }
-            
-            .stats-grid {
-                gap: 0.8rem;
-            }
-            
-            .stat-card {
-                padding: 1rem;
-            }
-            
-            .stat-number {
-                font-size: 1.5rem;
-            }
-            
-            .panel-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .nav-links a span {
-                display: none;
-            }
-            
-            .nav-links a i {
-                font-size: 1.2rem;
-            }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #9ca3af;
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
+        /* Your existing CSS - keep the same */
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+        :root{--bg:#080c14;--surface:#0f1623;--card:#141c2e;--card-hover:#182035;--border:#1e2a42;--border-lit:#2e3f60;--gold:#e8b84b;--gold-dim:#c9962a;--gold-glow:rgba(232,184,75,0.15);--teal:#26c6b0;--blue:#3b82f6;--red:#ef4444;--green:#22c55e;--amber:#f59e0b;--text:#e8eaf0;--text-2:#8492a8;--text-3:#4a5570;--radius:16px;--radius-sm:10px;--shadow:0 8px 32px rgba(0,0,0,0.4);}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+        ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--border-lit);border-radius:4px;}
+        .license-overlay{position:fixed;inset:0;background:radial-gradient(ellipse at center,#0d1526 0%,#050810 100%);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;}
+        .license-modal{background:var(--surface);border:1px solid var(--border-lit);border-radius:28px;width:100%;max-width:460px;padding:48px 36px;text-align:center;}
+        .license-icon-wrap{width:80px;height:80px;margin:0 auto 28px;background:var(--gold-glow);border:1px solid rgba(232,184,75,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;}
+        .license-modal h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--gold);}
+        .license-input{width:100%;padding:15px 18px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Courier New',monospace;font-size:15px;text-align:center;}
+        .license-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border:none;border-radius:var(--radius-sm);color:#0a0a0a;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;}
+        .lic-error{color:var(--red);font-size:13px;margin-top:14px;display:none;}
+        .demo-hint{margin-top:20px;font-size:12px;color:var(--text-3);}
+        .spinner{width:18px;height:18px;border:2px solid rgba(232,184,75,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        .app-container{display:none;}
+        .sidebar{position:fixed;left:0;top:0;width:264px;height:100vh;background:var(--surface);border-right:1px solid var(--border);z-index:100;overflow-y:auto;display:flex;flex-direction:column;}
+        .logo{padding:24px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+        .logo-mark{width:42px;height:42px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+        .logo-text{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);}
+        .logo-text em{background:linear-gradient(135deg,var(--gold),var(--gold-dim));-webkit-background-clip:text;background-clip:text;color:transparent;}
+        .wa-card{margin:16px 14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);}
+        .wa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+        .wa-status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text-2);}
+        .dot{width:9px;height:9px;border-radius:50%;}.dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}.dot.off{background:var(--red);}
+        .wa-qr-box{margin-top:10px;padding:14px;background:white;border-radius:var(--radius-sm);display:none;text-align:center;}
+        .wa-qr-box img{width:180px;height:180px;display:block;margin:0 auto;border-radius:8px;}
+        .wa-btn{width:100%;padding:9px 12px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-top:7px;display:flex;align-items:center;justify-content:center;gap:6px;}
+        .wa-btn-connect{background:linear-gradient(135deg,#25D366,#128C7E);color:white;}
+        .wa-btn-refresh{background:var(--card-hover);color:var(--text-2);display:none;}
+        .wa-btn-disconnect{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.2);display:none;}
+        nav{padding:16px 12px;flex:1;}
+        .nav-section-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;padding:0 8px;margin:14px 0 6px;}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;color:var(--text-2);background:none;width:100%;text-align:left;font-size:13px;font-family:'DM Sans',sans-serif;border:none;}
+        .nav-item:hover{background:var(--card);color:var(--text);}
+        .nav-item.active{background:var(--gold-glow);color:var(--gold);border:1px solid rgba(232,184,75,0.2);}
+        .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text-3);}
+        .main{margin-left:264px;min-height:100vh;}
+        .topbar{height:66px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50;}
+        .topbar-left{display:flex;align-items:center;gap:14px;}
+        .hamburger{display:none;padding:8px;background:transparent;color:var(--text-2);cursor:pointer;border:none;}
+        .page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);}
+        .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:40px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;}
+        .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#0a0a0a;}
+        .btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border);}
+        .content{padding:28px;}
+        .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px;}
+        .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;}
+        .stat-accent{position:absolute;top:0;left:0;right:0;height:3px;}
+        .stat-icon-wrap{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;}
+        .stat-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600;}
+        .stat-value{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--text);line-height:1;}
+        .dash-bottom{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+        .dash-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+        .dash-section-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+        .dash-section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+        .dash-empty{padding:40px 20px;text-align:center;color:var(--text-3);}
+        .dash-job-row{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+        .dash-job-row:hover{background:var(--card-hover);}
+        .dash-job-name{font-weight:600;font-size:13px;color:var(--text);}
+        .dash-job-meta{font-size:11px;color:var(--text-3);margin-top:2px;}
+        .toolbar{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+        .search-box{flex:1;position:relative;min-width:200px;}
+        .search-box input{width:100%;padding:11px 16px 11px 42px;background:var(--card);border:1px solid var(--border);border-radius:40px;color:var(--text);font-size:13px;}
+        .search-box i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-3);}
+        .filters{display:flex;gap:6px;flex-wrap:wrap;}
+        .filter-btn{padding:7px 14px;border-radius:40px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text-2);}
+        .filter-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#0a0a0a;border-color:transparent;}
+        .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+        .table-scroll{overflow-x:auto;}
+        table{width:100%;border-collapse:collapse;min-width:720px;}
+        th{padding:13px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;border-bottom:1px solid var(--border);}
+        td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text-2);}
+        .job-num{font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);}
+        .cust-name{font-weight:600;color:var(--text);}
+        .cust-phone{font-size:11px;color:var(--text-3);}
+        .vehicle-tag{background:rgba(59,130,246,0.1);color:#60a5fa;padding:3px 9px;border-radius:6px;font-size:12px;display:inline-block;}
+        .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:30px;font-size:11px;font-weight:700;}
+        .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;}
+        .b-received{background:rgba(148,163,184,0.1);color:#94a3b8;}
+        .b-ready{background:rgba(34,197,94,0.12);color:#4ade80;}
+        .action-btn{padding:5px 11px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:none;margin-right:4px;}
+        .ab-view{background:rgba(232,184,75,0.1);color:var(--gold);}
+        .ab-update{background:rgba(34,197,94,0.1);color:#4ade80;}
+        .modal-overlay{position:fixed;inset:0;background:rgba(5,8,16,0.92);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;}
+        .modal-overlay.open{display:flex;}
+        .modal{background:var(--surface);border:1px solid var(--border-lit);border-radius:22px;width:100%;max-width:560px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;}
+        .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+        .modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;}
+        .modal-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-3);cursor:pointer;}
+        .modal-body{padding:24px;overflow-y:auto;flex:1;}
+        .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+        .form-group{margin-bottom:16px;}
+        .form-group label{display:block;font-size:11px;font-weight:700;margin-bottom:6px;color:var(--text-2);text-transform:uppercase;}
+        .form-group input,.form-group textarea,.form-group select{width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+        .toast{position:fixed;bottom:24px;right:24px;padding:13px 18px;background:var(--card);border:1px solid var(--border-lit);border-radius:var(--radius-sm);z-index:9000;display:flex;align-items:center;gap:10px;}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
+        @media (max-width:768px){.sidebar{transform:translateX(-100%);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.hamburger{display:flex;}.stats-grid{grid-template-columns:repeat(2,1fr);}.form-row{grid-template-columns:1fr;}}
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-car"></i>
-                </div>
-                <div class="logo-text">
-                    Quick<span>Fix</span>
-                </div>
-            </a>
-            <ul class="nav-links">
-                <li><a href="index.html"><i class="fas fa-calendar-plus"></i> <span>Book</span></a></li>
-                <li><a href="tracking.html"><i class="fas fa-map-marker-alt"></i> <span>Track</span></a></li>
-                <li><a href="admin.html" class="active"><i class="fas fa-user-cog"></i> <span>Admin</span></a></li>
-                <li><button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> <span>Exit</span></button></li>
-            </ul>
-        </div>
-    </nav>
 
-    <div class="container">
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-number" id="totalCount">0</div>
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-label">Total Bookings</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-number" id="pendingCount">0</div>
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-number" id="progressCount">0</div>
-                    <i class="fas fa-wrench"></i>
-                </div>
-                <div class="stat-label">In Progress</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-number" id="completedCount">0</div>
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-label">Completed</div>
-            </div>
-        </div>
-
-        <!-- Bookings Table -->
-        <div class="bookings-panel">
-            <div class="panel-header">
-                <h2><i class="fas fa-tools"></i> All Service Requests</h2>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="Pending">Pending</button>
-                    <button class="filter-btn" data-filter="In Progress">Active</button>
-                    <button class="filter-btn" data-filter="Completed">Completed</button>
-                </div>
-            </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>Customer</th><th>Vehicle</th><th>Status</th><th>Quotation</th><th>   </th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="bookingsTbody">
-                        <tr><td colspan="7" class="empty-state"><i class="fas fa-spinner fa-spin"></i> Loading bookings...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<!-- LICENSE OVERLAY -->
+<div id="licenseOverlay" class="license-overlay">
+    <div class="license-modal">
+        <div class="license-icon-wrap">⚙️</div>
+        <h2>Activate MechTrack</h2>
+        <p class="sub">Enter your license key to unlock the workshop panel</p>
+        <input type="text" id="licenseKeyInput" class="license-input" placeholder="MECH-XXXX-XXXX-XXXX">
+        <button class="license-btn" id="activateLicenseBtn"><i class="fas fa-unlock-alt"></i> Activate License</button>
+        <div id="licenseError" class="lic-error"></div>
+        <p class="demo-hint">Demo key: <code>MECH-DEMO-2024-001</code></p>
     </div>
+</div>
 
-    <!-- Modal for Quotation -->
-    <div id="quoteModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <i class="fas fa-file-invoice-dollar"></i> Send Quotation
-            </div>
-            <div class="modal-body">
-                <div id="modalInfo" style="background: #f8fafc; padding: 0.8rem; border-radius: 12px; margin-bottom: 1rem;"></div>
-                <input type="number" id="laborCost" placeholder="🔧 Labor Cost (₹)">
-                <input type="number" id="partsCost" placeholder="🔩 Parts Cost (₹)">
-                <textarea id="quoteNotes" rows="3" placeholder="📝 Additional notes (warranty, timeline, etc.)"></textarea>
-                <div id="totalAmount" style="font-weight: 700; font-size: 1.2rem; text-align: center; margin: 1rem 0; color: #667eea;">Total: ₹0</div>
-                <div class="modal-buttons">
-                    <button id="sendWhatsAppBtn" style="background: #25D366; color: white;"><i class="fab fa-whatsapp"></i> Send via WhatsApp</button>
-                    <button id="closeModalBtn" style="background: #e2e8f0;">Cancel</button>
+<!-- APP -->
+<div id="appContainer" class="app-container">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="logo"><div class="logo-mark">🔧</div><div class="logo-text">Mech<em>Track</em></div></div>
+        <div class="wa-card">
+            <div class="wa-header"><div class="wa-status"><div class="dot off" id="waDot"></div><span id="waStatusText">Not connected</span></div><i class="fab fa-whatsapp" style="color:#25D366;font-size:18px"></i></div>
+            <div id="waQrBox" class="wa-qr-box"></div>
+            <button class="wa-btn wa-btn-connect" id="connectWaBtn"><i class="fab fa-whatsapp"></i> Connect WhatsApp</button>
+            <button class="wa-btn wa-btn-refresh" id="refreshWaBtn"><i class="fas fa-rotate"></i> Refresh Status</button>
+            <button class="wa-btn wa-btn-disconnect" id="disconnectWaBtn"><i class="fas fa-plug-circle-xmark"></i> Disconnect</button>
+        </div>
+        <nav>
+            <div class="nav-section-label">Menu</div>
+            <button class="nav-item active" data-page="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</button>
+            <button class="nav-item" data-page="jobs"><i class="fas fa-list-check"></i> All Jobs</button>
+            <button class="nav-item" id="newJobNavBtn"><i class="fas fa-plus-circle"></i> New Job Entry</button>
+        </nav>
+        <div class="sidebar-footer">MechTrack v2.0 · <span id="licenseTag">—</span></div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div class="topbar-left"><button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button><div class="page-title" id="pageTitle">Dashboard</div></div>
+            <div class="topbar-right"><button class="btn btn-ghost" id="manualRefreshBtn"><i class="fas fa-rotate"></i></button><button class="btn btn-primary" id="newJobBtn"><i class="fas fa-plus"></i> New Job</button></div>
+        </div>
+        <div id="contentArea" class="content">
+            <div id="dashboardView">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--blue),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(59,130,246,0.12);color:#60a5fa"><i class="fas fa-database"></i></div><div class="stat-label">Total Jobs</div><div class="stat-value" id="stat-total">—</div></div>
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--teal),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(38,198,176,0.12);color:var(--teal)"><i class="fas fa-wrench"></i></div><div class="stat-label">Active Jobs</div><div class="stat-value" id="stat-active">—</div></div>
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--green),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(34,197,94,0.12);color:var(--green)"><i class="fas fa-check-circle"></i></div><div class="stat-label">Ready for Pickup</div><div class="stat-value" id="stat-ready">—</div></div>
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--amber),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(245,158,11,0.12);color:var(--amber)"><i class="fas fa-clock"></i></div><div class="stat-label">Waiting Parts</div><div class="stat-value" id="stat-waiting">—</div></div>
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--gold),transparent)"></div><div class="stat-icon-wrap" style="background:var(--gold-glow);color:var(--gold)"><i class="fas fa-truck"></i></div><div class="stat-label">Delivered</div><div class="stat-value" id="stat-delivered">—</div></div>
+                </div>
+                <div class="dash-bottom">
+                    <div class="dash-section"><div class="dash-section-header"><div class="dash-section-title">Recent Jobs</div><button class="btn btn-ghost" style="padding:5px 12px;font-size:12px" onclick="switchToJobs()">View All</button></div><div id="recentJobsList"><div class="dash-empty"><div class="spinner"></div></div></div></div>
+                    <div class="dash-section"><div class="dash-section-header"><div class="dash-section-title">Ready for Pickup</div><span class="badge b-ready" id="readyCount">0</span></div><div id="readyJobsList"><div class="dash-empty">Loading…</div></div></div>
                 </div>
             </div>
+            <div id="jobsView" style="display:none">
+                <div class="toolbar"><div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search..."></div><div class="filters" id="filterTabs"><button class="filter-btn active" data-filter="all">All</button><button class="filter-btn" data-filter="received">Received</button><button class="filter-btn" data-filter="diagnosing">Diagnosing</button><button class="filter-btn" data-filter="waiting_parts">Waiting</button><button class="filter-btn" data-filter="in_progress">In Progress</button><button class="filter-btn" data-filter="quality_check">QC</button><button class="filter-btn" data-filter="ready">Ready</button><button class="filter-btn" data-filter="delivered">Delivered</button></div></div>
+                <div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Job #</th><th>Customer</th><th>Vehicle</th><th>Complaint</th><th>Status</th><th>Delivery</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="jobsTableBody"><tr><td colspan="8" style="text-align:center;padding:60px"><div class="spinner"></div> Loading...</td></tr></tbody></table></div><div class="pagination"><span class="page-info" id="paginationInfo"></span><div class="page-btns" id="paginationButtons"></div></div></div>
+            </div>
         </div>
-    </div>
+    </main>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+<!-- MODALS -->
+<div id="newJobModal" class="modal-overlay"><div class="modal"><div class="modal-header"><div class="modal-title">New Service Entry</div><button class="modal-close" id="closeNewJobModal"><i class="fas fa-times"></i></button></div><div class="modal-body"><form id="newJobForm"><div class="form-row"><div class="form-group"><label>Customer Name *</label><input type="text" name="customer_name" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" name="customer_phone" required></div></div><div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input type="text" name="vehicle_number" required></div><div class="form-group"><label>Make / Brand</label><input type="text" name="vehicle_make"></div></div><div class="form-row"><div class="form-group"><label>Model</label><input type="text" name="vehicle_model"></div><div class="form-group"><label>Estimated Cost (₹)</label><input type="number" name="estimated_cost"></div></div><div class="form-row"><div class="form-group"><label>Estimated Delivery</label><input type="date" name="estimated_delivery"></div><div class="form-group"><label>Assigned Mechanic</label><input type="text" name="assigned_mechanic"></div></div><div class="form-group"><label>Customer Complaint *</label><textarea name="complaint" rows="3" required></textarea></div><div class="form-group"><label>Internal Notes</label><textarea name="notes" rows="2"></textarea></div></form></div><div class="modal-footer"><button class="btn btn-ghost" id="cancelNewJobBtn">Cancel</button><button class="btn btn-primary" id="submitJobBtn">Create Job</button></div></div></div>
 
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyCLT2q9eTZMnmoxOoKAjJ2hhEbY5cqKZQI",
-            authDomain: "mechshop-d84f0.firebaseapp.com",
-            projectId: "mechshop-d84f0",
-            storageBucket: "mechshop-d84f0.firebasestorage.app",
-            messagingSenderId: "351961097826",
-            appId: "1:351961097826:web:75de4b8ff69185ad55533b"
-        };
+<div id="jobDetailModal" class="modal-overlay"><div class="modal" style="max-width:680px"><div class="modal-header"><div class="modal-title">Job Details</div><button class="modal-close" id="closeJobDetailModal"><i class="fas fa-times"></i></button></div><div class="modal-body" id="jobDetailBody"><div style="text-align:center;padding:40px"><div class="spinner"></div></div></div></div></div>
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-        const auth = getAuth(app);
+<div id="updateStatusModal" class="modal-overlay"><div class="modal"><div class="modal-header"><div class="modal-title">Update Job Status</div><button class="modal-close" id="closeUpdateModal"><i class="fas fa-times"></i></button></div><div class="modal-body"><div class="form-group"><label>New Status</label><select id="statusSelect"><option value="received">Received</option><option value="diagnosing">Diagnosing</option><option value="waiting_parts">Waiting Parts</option><option value="in_progress">In Progress</option><option value="quality_check">Quality Check</option><option value="ready">Ready for Pickup</option><option value="delivered">Delivered</option></select></div><div class="form-group"><label>Update Message *</label><textarea id="updateMessage" rows="3" placeholder="Message to customer..."></textarea></div><div class="form-row"><div class="form-group"><label>Diagnosis</label><textarea id="updateDiagnosis" rows="2"></textarea></div><div class="form-group"><label>Work Done</label><textarea id="updateWorkDone" rows="2"></textarea></div></div><div class="form-row"><div class="form-group"><label>Parts Used</label><input type="text" id="updatePartsUsed"></div><div class="form-group"><label>Final Cost (₹)</label><input type="number" id="updateFinalCost"></div></div><div class="form-group"><label>Est. Delivery</label><input type="date" id="updateEstDelivery"></div></div><div class="modal-footer"><button class="btn btn-ghost" id="cancelUpdateBtn">Cancel</button><button class="btn btn-primary" id="submitUpdateBtn">Update & Notify</button></div></div></div>
 
-        let allBookings = [];
-        let currentFilter = 'all';
-        let currentModalBooking = null;
+<div id="toastContainer"></div>
 
-        // Show toast notification
-        function showToast(message, isError = false) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.style.background = isError ? '#ef4444' : '#10b981';
-            toast.innerHTML = message;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+<script>
+// ============================================
+// FIXED: NO REFRESH, NO DISCONNECT-ON-CONNECT
+// ============================================
+const API_URL = 'http://localhost:4321';
+const PER_PAGE = 10;
+let jobs = [];
+let filteredJobs = [];
+let activeFilter = 'all';
+let currentPage = 1;
+let currentView = 'dashboard';
+let currentJobId = null;
+let qrPollTimer = null;
+
+const STATUS_ORDER = ['received','diagnosing','waiting_parts','in_progress','quality_check','ready','delivered'];
+const STATUS_LABELS = { received:'Received', diagnosing:'Diagnosing', waiting_parts:'Waiting Parts', in_progress:'In Progress', quality_check:'QC', ready:'Ready', delivered:'Delivered' };
+const STATUS_ICONS = { received:'📥', diagnosing:'🔍', waiting_parts:'⏳', in_progress:'🔧', quality_check:'🔎', ready:'🎉', delivered:'✔️' };
+
+const $ = id => document.getElementById(id);
+const esc = t => { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; };
+function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }); }
+function fmtMoney(a) { if (!a && a !== 0) return '—'; return '₹' + Number(a).toLocaleString('en-IN'); }
+function timeAgo(d) { if (!d) return ''; const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m}m ago`; const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`; return `${Math.floor(h / 24)}d ago`; }
+function showToast(msg, type = 'success') { const icons = { success:'✅', error:'❌', info:'ℹ️' }; const el = document.createElement('div'); el.className = `toast ${type}`; el.innerHTML = `<span>${icons[type]||'💬'} ${msg}</span>`; $('toastContainer').appendChild(el); setTimeout(() => el.remove(), 4000); }
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+
+async function apiCall(endpoint, opts = {}) {
+    try {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            headers: { 'Content-Type': 'application/json' },
+            ...opts
+        });
+        if (!res.ok) { let msg = `HTTP ${res.status}`; try { const j = await res.json(); msg = j.detail || j.message || msg; } catch(e) {} throw new Error(msg); }
+        return await res.json();
+    } catch(e) { console.warn('API Error:', e.message); return null; }
+}
+
+// LICENSE - CHECK ONCE ONLY
+async function activateLicense() {
+    const key = $('licenseKeyInput').value.trim().toUpperCase();
+    const errDiv = $('licenseError');
+    if (!key) { errDiv.textContent = 'Enter license key'; errDiv.style.display = 'block'; return; }
+    const btn = $('activateLicenseBtn');
+    btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
+    try {
+        const result = await apiCall('/api/license/verify', { method:'POST', body:JSON.stringify({ license_key: key }) });
+        if (result && result.valid) {
+            localStorage.setItem('mechtrack_lic', JSON.stringify({ key, client: result.client_name }));
+            $('licenseOverlay').style.display = 'none';
+            $('appContainer').style.display = 'block';
+            $('licenseTag').textContent = result.client_name;
+            loadDashboard();
+        } else if (key === 'MECH-DEMO-2024-001') {
+            localStorage.setItem('mechtrack_lic', JSON.stringify({ key, client: 'Demo Workshop' }));
+            $('licenseOverlay').style.display = 'none';
+            $('appContainer').style.display = 'block';
+            $('licenseTag').textContent = 'Demo Workshop';
+            loadDashboard();
+        } else {
+            errDiv.textContent = 'Invalid license key';
+            errDiv.style.display = 'block';
         }
+    } catch(e) { errDiv.textContent = 'Cannot reach server'; errDiv.style.display = 'block'; }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-unlock-alt"></i> Activate License'; }
+}
 
-        // Update booking status
-        async function updateBookingStatus(bookingId, newStatus) {
-            try {
-                await updateDoc(doc(db, "bookings", bookingId), { 
-                    status: newStatus,
-                    updatedAt: new Date()
-                });
-                showToast(`Status updated to: ${newStatus}`);
-            } catch (error) {
-                showToast('Error: ' + error.message, true);
+async function checkExistingLicense() {
+    const saved = localStorage.getItem('mechtrack_lic');
+    if (saved) {
+        $('licenseOverlay').style.display = 'none';
+        $('appContainer').style.display = 'block';
+        try { const lic = JSON.parse(saved); $('licenseTag').textContent = lic.client || '—'; } catch(e) {}
+        return true;
+    }
+    return false;
+}
+
+// ============================================
+// FIXED WHATSAPP - NO DISCONNECT ON CONNECT
+// ============================================
+function clearQrPoll() { if (qrPollTimer) { clearInterval(qrPollTimer); qrPollTimer = null; } }
+
+async function checkWaStatus() {
+    try {
+        const data = await apiCall('/whatsapp-status');
+        if (data) {
+            const dot = $('waDot');
+            const txt = $('waStatusText');
+            if (data.connected || data.ready) {
+                dot.className = 'dot on';
+                txt.textContent = 'Connected';
+                $('connectWaBtn').style.display = 'none';
+                $('refreshWaBtn').style.display = 'block';
+                $('disconnectWaBtn').style.display = 'block';
+                $('waQrBox').style.display = 'none';
+                clearQrPoll();
+            } else {
+                dot.className = 'dot off';
+                txt.textContent = 'Disconnected';
+                $('connectWaBtn').style.display = 'block';
+                $('refreshWaBtn').style.display = 'block';
+                $('disconnectWaBtn').style.display = 'none';
             }
         }
+    } catch(e) { console.log('Status check failed:', e); }
+}
 
-        // Send quotation
-        async function sendQuotation(bookingId, quotationData) {
-            try {
-                await updateDoc(doc(db, "bookings", bookingId), {
-                    quotation: quotationData.total,
-                    quotationDetails: quotationData,
-                    status: "Quotation Sent",
-                    quotationAccepted: null,
-                    updatedAt: new Date()
-                });
-                showToast('Quotation sent successfully!');
-            } catch (error) {
-                showToast('Error: ' + error.message, true);
-                throw error;
-            }
+async function connectWhatsApp() {
+    const qrBox = $('waQrBox');
+    const btn = $('connectWaBtn');
+    
+    if (!qrBox || !btn) return;
+    
+    // FIXED: Don't disconnect first! Just check current status
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+    qrBox.style.display = 'block';
+    qrBox.innerHTML = '<div style="text-align:center;padding:20px"><div class="spinner"></div><br>Getting QR code...</div>';
+    
+    try {
+        // First check if already connected
+        const status = await apiCall('/whatsapp-status');
+        if (status && (status.connected || status.ready)) {
+            qrBox.style.display = 'none';
+            showToast('WhatsApp already connected!');
+            checkWaStatus();
+            return;
         }
-
-        // Upload final image to Firebase Storage
-        async function uploadFinalImage(bookingId, file) {
-            try {
-                const storageRef = ref(storage, `final_images/${bookingId}/${Date.now()}_${file.name}`);
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadUrl = await getDownloadURL(snapshot.ref);
-                
-                await updateDoc(doc(db, "bookings", bookingId), {
-                    finalImageUrl: downloadUrl,
-                    status: "Completed",
-                    updatedAt: new Date()
-                });
-                
-                showToast('Image uploaded & status set to Completed!');
-                return downloadUrl;
-            } catch (error) {
-                showToast('Upload error: ' + error.message, true);
-                throw error;
-            }
-        }
-
-        // Send WhatsApp message
-        function sendWhatsAppMessage(phone, name, vehicle, quotationData, notes, bookingId) {
-            let cleanPhone = phone.replace(/\D/g, '');
-            if (!cleanPhone.startsWith('91') && cleanPhone.length === 10) {
-                cleanPhone = '91' + cleanPhone;
-            }
+        
+        // Get QR code without disconnecting first
+        const data = await apiCall('/whatsapp/qr');
+        
+        if (data && data.qr) {
+            qrBox.innerHTML = `<img src="${data.qr}" style="max-width:100%"><p style="margin-top:10px">Scan with WhatsApp</p><p style="font-size:11px;color:#888">Open WhatsApp → Settings → Linked Devices → Link a Device</p>`;
+            showToast('Scan QR code with your phone', 'info');
             
-            const message = `🏪 *QUICKFIX AUTO - QUOTATION* 🏪\n\n` +
-                `👤 *Customer:* ${name}\n` +
-                `🚗 *Vehicle:* ${vehicle}\n` +
-                `🔖 *Booking ID:* ${bookingId}\n\n` +
-                `*💰 BREAKDOWN:*\n` +
-                `🔧 Labor: ₹${quotationData.labor}\n` +
-                `🔩 Parts: ₹${quotationData.parts}\n` +
-                `━━━━━━━━━━━━━━━━━━\n` +
-                `*TOTAL: ₹${quotationData.total}*\n` +
-                `━━━━━━━━━━━━━━━━━━\n\n` +
-                `${notes ? `📝 ${notes}\n\n` : ''}` +
-                `✅ Reply "ACCEPT" to confirm.`;
-            
-            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
-        }
-
-        // Render table
-        function renderBookingsTable() {
-            const tbody = document.getElementById('bookingsTbody');
-            let filteredBookings = allBookings;
-            
-            if (currentFilter !== 'all') {
-                if (currentFilter === 'In Progress') {
-                    filteredBookings = allBookings.filter(b => 
-                        ['In Progress', 'Quotation Sent', 'Pickup Scheduled', 'On the Way', 'Picked', 'Waiting Parts'].includes(b.status)
-                    );
-                } else {
-                    filteredBookings = allBookings.filter(b => b.status === currentFilter);
-                }
-            }
-            
-            if (filteredBookings.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><br>No bookings found</td></tr>`;
-                return;
-            }
-            
-            let html = '';
-            filteredBookings.forEach(booking => {
-                const hasImage = booking.finalImageUrl ? true : false;
-                const serviceType = booking.serviceType || 'Self Drop';
-                
-                html += `
-                    <tr>
-                        <td style="font-family: monospace; font-size: 0.7rem;">${booking.id.slice(0, 8)}..</td>
-                        <td>
-                            <strong>${escapeHtml(booking.name)}</strong><br>
-                            <small style="color: #6b7280;">${escapeHtml(booking.phone)}</small><br>
-                            <small style="font-size: 0.65rem;">${serviceType}</small>
-                        </td>
-                        <td>${escapeHtml(booking.vehicle)}</td>
-                        <td>
-                            <select class="status-select" data-id="${booking.id}">
-                                ${getStatusOptions(booking.status || 'Pending')}
-                            </select>
-                        </td>
-                        <td>
-                            <button class="btn-small" onclick="openQuoteModal('${booking.id}')">
-                                <i class="fas fa-file-invoice"></i> Quote
-                            </button>
-                            ${booking.quotation ? `<br><small style="color: #10b981;">₹${booking.quotation}</small>` : ''}
-                        </td>
-                        <td>
-                           
-                        </td>
-                        <td>
-                            <button class="btn-small btn-whatsapp" onclick="sendMessageToCustomer('${booking.id}')">
-                                <i class="fab fa-whatsapp"></i> Msg
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            tbody.innerHTML = html;
-            
-            // Attach status change listeners
-            document.querySelectorAll('.status-select').forEach(select => {
-                select.addEventListener('change', async (e) => {
-                    const id = select.getAttribute('data-id');
-                    await updateBookingStatus(id, select.value);
-                });
-            });
-            
-            // Attach upload listeners
-            document.querySelectorAll('.upload-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const id = btn.getAttribute('data-id');
-                    const fileInput = document.getElementById(`file-${id}`);
-                    const file = fileInput.files[0];
-                    
-                    if (!file) {
-                        showToast('Please select an image first', true);
-                        return;
+            clearQrPoll();
+            qrPollTimer = setInterval(async () => {
+                try {
+                    const s = await apiCall('/whatsapp-status');
+                    if (s && (s.connected || s.ready)) {
+                        clearQrPoll();
+                        qrBox.style.display = 'none';
+                        showToast('WhatsApp connected successfully! ✅');
+                        checkWaStatus();
                     }
-                    
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-                    
-                    await uploadFinalImage(id, file);
-                    
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-upload"></i> Upload';
-                    fileInput.value = '';
-                });
-            });
-            
-            updateStats(filteredBookings);
+                } catch(e) {}
+            }, 3000);
+        } else {
+            qrBox.innerHTML = '<div style="padding:20px;color:#c00">QR not available. Make sure bridge is running on port 4322</div>';
+        }
+    } catch(e) {
+        console.error('Connection error:', e);
+        qrBox.innerHTML = `<div style="padding:20px;color:#c00">
+            <strong>❌ Cannot reach WhatsApp bridge</strong><br><br>
+            Make sure you ran:<br>
+            <code style="background:#333;padding:4px 8px;display:inline-block;margin-top:8px">node whatsapp-bridge.js</code>
+        </div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fab fa-whatsapp"></i> Connect WhatsApp';
+    }
+}
+
+async function disconnectWhatsApp() {
+    if (!confirm('⚠️ Disconnect WhatsApp?\n\nYou will need to scan QR code again to reconnect.')) return;
+    
+    const btn = $('disconnectWaBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner"></div>';
+    }
+    
+    try {
+        await apiCall('/whatsapp/disconnect', { method: 'POST' });
+        showToast('WhatsApp disconnected');
+        
+        // Clear QR poll if any
+        clearQrPoll();
+        
+        // Reset UI
+        const qrBox = $('waQrBox');
+        if (qrBox) {
+            qrBox.style.display = 'none';
+            qrBox.innerHTML = '';
         }
         
-        function getStatusOptions(currentStatus) {
-            const statuses = ['Pending', 'Pickup Scheduled', 'On the Way', 'Picked', 'In Progress', 'Waiting Parts', 'Quotation Sent', 'Quotation Rejected', 'Completed'];
-            return statuses.map(s => `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${s}</option>`).join('');
+        // Update status after delay
+        setTimeout(() => checkWaStatus(), 1000);
+    } catch(e) {
+        showToast('Disconnect failed: ' + e.message, 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plug-circle-xmark"></i> Disconnect';
         }
-        
-        function updateStats(bookings) {
-            const total = allBookings.length;
-            const pending = allBookings.filter(b => b.status === 'Pending').length;
-            const progress = allBookings.filter(b => ['In Progress', 'Quotation Sent', 'Pickup Scheduled', 'On the Way', 'Picked', 'Waiting Parts'].includes(b.status)).length;
-            const completed = allBookings.filter(b => b.status === 'Completed').length;
-            
-            document.getElementById('totalCount').innerText = total;
-            document.getElementById('pendingCount').innerText = pending;
-            document.getElementById('progressCount').innerText = progress;
-            document.getElementById('completedCount').innerText = completed;
-        }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-        
-        // Modal functions
-        window.openQuoteModal = (bookingId) => {
-            const booking = allBookings.find(b => b.id === bookingId);
-            if (!booking) return;
-            
-            currentModalBooking = booking;
-            document.getElementById('modalInfo').innerHTML = `
-                <p><strong>${escapeHtml(booking.name)}</strong></p>
-                <p>${escapeHtml(booking.vehicle)} | ${escapeHtml(booking.phone)}</p>
-                <p style="font-size: 0.8rem;">${escapeHtml(booking.problem)}</p>
-            `;
-            document.getElementById('laborCost').value = '';
-            document.getElementById('partsCost').value = '';
-            document.getElementById('quoteNotes').value = '';
-            document.getElementById('totalAmount').innerHTML = 'Total: ₹0';
-            document.getElementById('quoteModal').style.display = 'flex';
-        };
-        
-        window.sendMessageToCustomer = (bookingId) => {
-            const booking = allBookings.find(b => b.id === bookingId);
-            if (booking) {
-                sendWhatsAppMessage(booking.phone, booking.name, booking.vehicle, 
-                    { labor: 0, parts: 0, total: 0 }, 
-                    `Your vehicle is ${booking.status}. Need any assistance?`, 
-                    booking.id);
-            }
-        };
-        
-        // Calculate total
-        function calculateTotal() {
-            const labor = parseFloat(document.getElementById('laborCost').value) || 0;
-            const parts = parseFloat(document.getElementById('partsCost').value) || 0;
-            const total = labor + parts;
-            document.getElementById('totalAmount').innerHTML = `Total: ₹${total}`;
-            return { labor, parts, total };
-        }
-        
-        document.getElementById('laborCost')?.addEventListener('input', calculateTotal);
-        document.getElementById('partsCost')?.addEventListener('input', calculateTotal);
-        
-        document.getElementById('sendWhatsAppBtn')?.addEventListener('click', async () => {
-            if (!currentModalBooking) return;
-            
-            const labor = parseFloat(document.getElementById('laborCost').value) || 0;
-            const parts = parseFloat(document.getElementById('partsCost').value) || 0;
-            const notes = document.getElementById('quoteNotes').value;
-            const total = labor + parts;
-            
-            if (labor === 0 && parts === 0) {
-                showToast('Please enter at least one cost', true);
-                return;
-            }
-            
-            const quotationData = { labor, parts, total, notes };
-            
-            await sendQuotation(currentModalBooking.id, quotationData);
-            sendWhatsAppMessage(
-                currentModalBooking.phone,
-                currentModalBooking.name,
-                currentModalBooking.vehicle,
-                quotationData,
-                notes,
-                currentModalBooking.id
-            );
-            
-            document.getElementById('quoteModal').style.display = 'none';
-        });
-        
-        document.getElementById('closeModalBtn')?.addEventListener('click', () => {
-            document.getElementById('quoteModal').style.display = 'none';
-        });
-        
-        // Close modal on outside click
-        window.addEventListener('click', (e) => {
-            const modal = document.getElementById('quoteModal');
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-        
-        // Filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = btn.getAttribute('data-filter');
-                renderBookingsTable();
-            });
-        });
-        
-        // Logout
-        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                window.location.href = 'index.html';
-            } catch (error) {
-                showToast('Logout error: ' + error.message, true);
-            }
-        });
-        
-        // Real-time listener
-        onSnapshot(collection(db, "bookings"), (snapshot) => {
-            allBookings = [];
-            snapshot.forEach(doc => {
-                allBookings.push({ id: doc.id, ...doc.data() });
-            });
-            allBookings.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-            renderBookingsTable();
-        });
-        
-        console.log('✅ Admin dashboard ready!');
-    </script>
+    }
+}
+
+// DATA LOADING - MANUAL ONLY
+async function loadDashboard() {
+    const stats = await apiCall('/stats');
+    if (stats) {
+        $('stat-total').textContent = stats.total || 0;
+        $('stat-active').textContent = stats.active || 0;
+        $('stat-ready').textContent = stats.ready || 0;
+        $('stat-waiting').textContent = stats.waiting_parts || 0;
+        $('stat-delivered').textContent = stats.delivered || 0;
+    }
+    const jobsData = await apiCall('/jobs');
+    if (jobsData) {
+        jobs = jobsData;
+        const recent = jobs.slice(0, 5);
+        $('recentJobsList').innerHTML = recent.length ? recent.map(j => `<div class="dash-job-row" onclick="viewJob('${j.id}')"><div><div class="dash-job-name">${esc(j.customer_name)}</div><div class="dash-job-meta">${esc(j.job_number)} · ${esc(j.vehicle_number)}</div></div><span class="badge b-${j.status}">${STATUS_LABELS[j.status]||j.status}</span></div>`).join('') : '<div class="dash-empty">No jobs yet</div>';
+        const ready = jobs.filter(j => j.status === 'ready');
+        $('readyCount').textContent = ready.length;
+        $('readyJobsList').innerHTML = ready.length ? ready.map(j => `<div class="dash-job-row" onclick="viewJob('${j.id}')"><div><div class="dash-job-name">${esc(j.customer_name)}</div><div class="dash-job-meta">${esc(j.vehicle_number)}</div></div></div>`).join('') : '<div class="dash-empty">No vehicles ready</div>';
+    }
+}
+
+async function loadJobs() {
+    const jobsData = await apiCall('/jobs');
+    if (jobsData) { jobs = jobsData; applyFilters(); }
+}
+
+function applyFilters() {
+    const q = ($('searchInput')?.value || '').toLowerCase();
+    filteredJobs = jobs.filter(j => {
+        const okFilter = activeFilter === 'all' || j.status === activeFilter;
+        const okSearch = !q || [j.customer_name, j.vehicle_number, j.job_number, j.customer_phone].some(v => v && v.toLowerCase().includes(q));
+        return okFilter && okSearch;
+    });
+    currentPage = 1;
+    renderTable();
+}
+
+function renderTable() {
+    const start = (currentPage - 1) * PER_PAGE;
+    const page = filteredJobs.slice(start, start + PER_PAGE);
+    $('jobsTableBody').innerHTML = page.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:60px">No jobs found</td></tr>' : page.map(j => `<tr><td><span class="job-num">${esc(j.job_number)}</span></td><td><div class="cust-name">${esc(j.customer_name)}</div><div class="cust-phone">${esc(j.customer_phone)}</div></td><td><span class="vehicle-tag">${esc(j.vehicle_number)}</span></td><td>${esc(j.complaint||'-')}</td><td><span class="badge b-${j.status}">${STATUS_LABELS[j.status]||j.status}</span></td><td>${fmtDate(j.estimated_delivery)}</td><td>${fmtMoney(j.final_cost||j.estimated_cost)}</td><td><button class="action-btn ab-view" onclick="viewJob('${j.id}')">View</button><button class="action-btn ab-update" onclick="openUpdateModal('${j.id}')">Update</button></td></tr>`).join('');
+    const total = filteredJobs.length;
+    const pages = Math.ceil(total / PER_PAGE);
+    $('paginationInfo').textContent = total > 0 ? `Showing ${start+1}–${Math.min(start+PER_PAGE, total)} of ${total}` : 'No results';
+    const btnsEl = $('paginationButtons');
+    btnsEl.innerHTML = '';
+    for (let i = 1; i <= pages; i++) { const b = document.createElement('button'); b.className = `page-btn ${i === currentPage ? 'active' : ''}`; b.textContent = i; b.onclick = () => { currentPage = i; renderTable(); }; btnsEl.appendChild(b); }
+}
+
+// JOB OPERATIONS
+async function createJob() {
+    const form = $('newJobForm');
+    const data = {};
+    new FormData(form).forEach((v,k) => { if (String(v).trim()) data[k] = String(v).trim(); });
+    if (!data.customer_name || !data.customer_phone || !data.vehicle_number || !data.complaint) { showToast('Please fill all required fields', 'error'); return; }
+    const btn = $('submitJobBtn');
+    btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
+    try {
+        await apiCall('/jobs', { method:'POST', body:JSON.stringify(data) });
+        closeModal('newJobModal');
+        form.reset();
+        showToast('Job created!');
+        if (currentView === 'dashboard') { loadDashboard(); } else { loadJobs(); }
+    } catch(e) { showToast(e.message || 'Failed', 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = 'Create Job'; }
+}
+
+async function viewJob(jobId) {
+    openModal('jobDetailModal');
+    $('jobDetailBody').innerHTML = '<div style="text-align:center;padding:48px"><div class="spinner"></div></div>';
+    try {
+        const j = await apiCall(`/jobs/${jobId}`);
+        $('jobDetailBody').innerHTML = `<div><div style="display:flex;justify-content:space-between"><div><div style="font-size:20px;font-weight:800;color:var(--gold)">${esc(j.job_number)}</div><div>Created ${fmtDate(j.created_at)}</div></div><span class="badge b-${j.status}">${STATUS_LABELS[j.status]}</span></div><hr><p><strong>Customer:</strong> ${esc(j.customer_name)}</p><p><strong>Phone:</strong> ${esc(j.customer_phone)}</p><p><strong>Vehicle:</strong> ${esc(j.vehicle_number)}</p><p><strong>Complaint:</strong> ${esc(j.complaint)}</p><p><strong>Status:</strong> ${j.status}</p><p><strong>Estimated Cost:</strong> ₹${j.estimated_cost || 0}</p><div style="margin-top:20px"><button class="btn btn-primary" onclick="closeModal('jobDetailModal');openUpdateModal('${j.id}')">Update Status</button></div></div>`;
+    } catch(e) { $('jobDetailBody').innerHTML = `<div style="color:var(--red);padding:20px">Error: ${esc(e.message)}</div>`; }
+}
+
+function openUpdateModal(jobId) { currentJobId = jobId; openModal('updateStatusModal'); }
+
+async function submitUpdate() {
+    const data = { status: $('statusSelect').value, message: $('updateMessage').value.trim(), diagnosis: $('updateDiagnosis').value.trim(), work_done: $('updateWorkDone').value.trim(), parts_used: $('updatePartsUsed').value.trim(), final_cost: parseFloat($('updateFinalCost').value) || null, estimated_delivery: $('updateEstDelivery').value || null };
+    if (!data.message) { showToast('Please enter a message', 'error'); return; }
+    const btn = $('submitUpdateBtn');
+    btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
+    try {
+        await apiCall(`/jobs/${currentJobId}/status`, { method:'PATCH', body:JSON.stringify(data) });
+        closeModal('updateStatusModal');
+        showToast('Status updated!');
+        if (currentView === 'dashboard') { loadDashboard(); } else { loadJobs(); }
+    } catch(e) { showToast(e.message || 'Update failed', 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = 'Update & Notify'; }
+}
+
+// NAVIGATION
+function switchToDashboard() { currentView = 'dashboard'; $('dashboardView').style.display = 'block'; $('jobsView').style.display = 'none'; $('pageTitle').textContent = 'Dashboard'; document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active')); document.querySelector('.nav-item[data-page="dashboard"]').classList.add('active'); loadDashboard(); closeSidebar(); }
+function switchToJobs() { currentView = 'jobs'; $('dashboardView').style.display = 'none'; $('jobsView').style.display = 'block'; $('pageTitle').textContent = 'All Jobs'; document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active')); document.querySelector('.nav-item[data-page="jobs"]').classList.add('active'); loadJobs(); closeSidebar(); }
+function setFilter(filter) { activeFilter = filter; document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter)); applyFilters(); }
+function closeSidebar() { if (window.innerWidth <= 768) { $('sidebar').classList.remove('open'); $('sidebarOverlay').classList.remove('visible'); } }
+
+// INIT - NO POLLING, NO REFRESHES
+document.addEventListener('DOMContentLoaded', async () => {
+    // License check once
+    const valid = await checkExistingLicense();
+    if (!valid) { $('licenseOverlay').style.display = 'flex'; $('appContainer').style.display = 'none'; return; }
+    
+    // Setup event listeners
+    $('activateLicenseBtn')?.addEventListener('click', activateLicense);
+    $('licenseKeyInput')?.addEventListener('keypress', e => { if (e.key === 'Enter') activateLicense(); });
+    document.querySelectorAll('.nav-item[data-page]').forEach(nav => { nav.addEventListener('click', () => nav.dataset.page === 'dashboard' ? switchToDashboard() : switchToJobs()); });
+    $('newJobBtn')?.addEventListener('click', () => openModal('newJobModal'));
+    $('newJobNavBtn')?.addEventListener('click', () => openModal('newJobModal'));
+    $('submitJobBtn')?.addEventListener('click', createJob);
+    $('closeNewJobModal')?.addEventListener('click', () => closeModal('newJobModal'));
+    $('cancelNewJobBtn')?.addEventListener('click', () => closeModal('newJobModal'));
+    $('closeJobDetailModal')?.addEventListener('click', () => closeModal('jobDetailModal'));
+    $('submitUpdateBtn')?.addEventListener('click', submitUpdate);
+    $('closeUpdateModal')?.addEventListener('click', () => closeModal('updateStatusModal'));
+    $('cancelUpdateBtn')?.addEventListener('click', () => closeModal('updateStatusModal'));
+    $('connectWaBtn')?.addEventListener('click', connectWhatsApp);
+    $('refreshWaBtn')?.addEventListener('click', checkWaStatus);
+    $('disconnectWaBtn')?.addEventListener('click', disconnectWhatsApp);
+    $('searchInput')?.addEventListener('input', applyFilters);
+    document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.filter)));
+    $('manualRefreshBtn')?.addEventListener('click', () => { if (currentView === 'dashboard') loadDashboard(); else loadJobs(); showToast('Refreshed'); });
+    $('hamburgerBtn')?.addEventListener('click', () => { $('sidebar').classList.toggle('open'); $('sidebarOverlay').classList.toggle('visible'); });
+    $('sidebarOverlay')?.addEventListener('click', closeSidebar);
+    
+    // Initial load
+    checkWaStatus();
+    switchToDashboard();
+});
+
+window.viewJob = viewJob;
+window.openUpdateModal = openUpdateModal;
+window.switchToJobs = switchToJobs;
+window.closeModal = closeModal;
+</script>
 </body>
 </html>
