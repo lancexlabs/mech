@@ -78,6 +78,13 @@ bridge_pid = None
 # In-memory QR store (pushed from PC bridge)
 whatsapp_qr_store = {"qr": None, "updated_at": None}
 
+# ✅ In-memory WhatsApp connection state — updated by bridge push
+whatsapp_connected_state = {
+    "connected": False,
+    "phone": None,
+    "connected_at": None,
+}
+
 # ============================================================
 # PERSISTENCE HELPERS
 # ============================================================
@@ -335,29 +342,34 @@ async def send_whatsapp(phone: str, message: str) -> bool:
             clean = "91" + clean
         elif len(clean) == 12 and clean.startswith("91"):
             pass
+        elif len(clean) == 13 and clean.startswith("+91"):
+            clean = clean[1:]
         else:
-            print(f"⚠️ Invalid phone number format: {phone}")
+            print(f"⚠️ Invalid phone number format: {phone} → cleaned: {clean}")
             return False
 
-        print(f"📱 Sending WhatsApp to {clean} via {WHATSAPP_BRIDGE}")
+        bridge_url = WHATSAPP_BRIDGE.rstrip("/")
+        print(f"📱 Sending WhatsApp to {clean} via {bridge_url}")
 
         async with httpx.AsyncClient(timeout=60.0) as client:
-            # Check bridge health first
+            # ── 1. Health check ──────────────────────────────
             try:
-                h = await client.get(f"{WHATSAPP_BRIDGE}/health", timeout=10.0)
+                h = await client.get(f"{bridge_url}/health", timeout=10.0)
                 health_data = h.json()
                 print(f"🔍 Bridge health: {health_data}")
                 if h.status_code != 200 or not health_data.get("ready"):
-                    print(f"⚠️ WhatsApp bridge not ready — status: {health_data}")
+                    print(f"⚠️ WhatsApp bridge not ready — {health_data}")
                     return False
             except Exception as he:
                 print(f"⚠️ Bridge health check failed: {he}")
                 return False
 
-            # Send message
+            # ── 2. Send message ──────────────────────────────
+            payload = {"phone": clean, "message": message}
+            print(f"📤 Posting to {bridge_url}/send-message — payload: {payload}")
             r = await client.post(
-                f"{WHATSAPP_BRIDGE}/send-message",
-                json={"phone": clean, "message": message},
+                f"{bridge_url}/send-message",
+                json=payload,
                 timeout=60.0
             )
             print(f"📤 Send result: {r.status_code} — {r.text}")
@@ -530,18 +542,76 @@ async def whatsapp_status():
 
 @app.get("/whatsapp/status/simple")
 async def whatsapp_simple_status():
+    """
+    ✅ FIXED: Checks both Render bridge AND in-memory connected state.
+    QR page polls this every 5s to detect when WhatsApp is linked.
+    """
+    # First check in-memory state (set by /whatsapp/push-connected)
+    if whatsapp_connected_state["connected"]:
+        return {
+            "ready": True,
+            "connecting": False,
+            "phone": whatsapp_connected_state.get("phone"),
+            "connected_at": whatsapp_connected_state.get("connected_at"),
+            "source": "memory",
+        }
+
+    # Fallback: live check Render bridge
     try:
-        async with httpx.AsyncClient(timeout=3.0) as client:
-            r = await client.get(f"{WHATSAPP_BRIDGE}/status")
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.get(f"{WHATSAPP_BRIDGE}/health")
             if r.status_code == 200:
                 data = r.json()
+                ready = data.get("ready", False)
+                if ready:
+                    # Sync in-memory state
+                    whatsapp_connected_state["connected"] = True
+                    whatsapp_connected_state["connected_at"] = datetime.now().isoformat()
                 return {
-                    "ready": data.get("ready", False),
+                    "ready": ready,
                     "connecting": data.get("connecting", False),
+                    "source": "bridge_live",
                 }
-    except Exception:
-        pass
-    return {"ready": False, "connecting": False}
+    except Exception as e:
+        print(f"⚠️ Bridge health check failed: {e}")
+
+    return {"ready": False, "connecting": False, "source": "unavailable"}
+
+
+@app.post("/whatsapp/push-connected")
+async def push_connected(request: Request):
+    """
+    ✅ NEW ENDPOINT — called by whatsapp-bridge.js when WhatsApp connects.
+    Updates in-memory state so /whatsapp/status/simple returns ready=true instantly.
+
+    Add this call in whatsapp-bridge.js inside the 'ready' event:
+        await fetch(`${RAILWAY_URL}/whatsapp/push-connected`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: info.wid.user })
+        });
+    """
+    global whatsapp_connected_state
+    try:
+        body = await request.json()
+        whatsapp_connected_state["connected"] = True
+        whatsapp_connected_state["phone"] = body.get("phone")
+        whatsapp_connected_state["connected_at"] = datetime.now().isoformat()
+        print(f"✅ WhatsApp connected — phone: {body.get('phone')} at {whatsapp_connected_state['connected_at']}")
+        return {"success": True, "message": "Connected state updated"}
+    except Exception as e:
+        raise HTTPException(500, f"Failed to update connected state: {str(e)}")
+
+
+@app.post("/whatsapp/push-disconnected")
+async def push_disconnected():
+    """Called by bridge when WhatsApp disconnects / logs out"""
+    global whatsapp_connected_state
+    whatsapp_connected_state["connected"] = False
+    whatsapp_connected_state["phone"] = None
+    whatsapp_connected_state["connected_at"] = None
+    print("⚠️ WhatsApp disconnected — state reset")
+    return {"success": True, "message": "Disconnected state updated"}
 
 
 @app.post("/whatsapp/push-qr")
@@ -552,7 +622,7 @@ async def push_qr(request: Request):
         body = await request.json()
         whatsapp_qr_store["qr"] = body.get("qr")
         whatsapp_qr_store["updated_at"] = datetime.now().isoformat()
-        whatsapp_qr_store["tunnel_url"] = body.get("tunnel_url")   # Cloudflare tunnel URL
+        whatsapp_qr_store["tunnel_url"] = body.get("tunnel_url")
         print(f"✅ QR received from bridge at {whatsapp_qr_store['updated_at']}")
         if whatsapp_qr_store.get("tunnel_url"):
             print(f"🌐 Bridge tunnel: {whatsapp_qr_store['tunnel_url']}")
@@ -593,7 +663,7 @@ async def whatsapp_qr_info():
     except Exception as e:
         return {
             "qr_available": whatsapp_qr_store["qr"] is not None,
-            "is_connected": False,
+            "is_connected": whatsapp_connected_state["connected"],
             "is_connecting": False,
             "error": str(e),
         }
@@ -601,6 +671,10 @@ async def whatsapp_qr_info():
 
 @app.post("/whatsapp/disconnect")
 async def whatsapp_disconnect():
+    global whatsapp_connected_state
+    whatsapp_connected_state["connected"] = False
+    whatsapp_connected_state["phone"] = None
+    whatsapp_connected_state["connected_at"] = None
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             r = await client.post(f"{WHATSAPP_BRIDGE}/disconnect")
@@ -637,16 +711,10 @@ async def get_bridge_url():
     """Check what bridge URL is configured"""
     return {
         "bridge_url": WHATSAPP_BRIDGE,
-        "whatsapp_enabled": WHATSAPP_ENABLED
+        "whatsapp_enabled": WHATSAPP_ENABLED,
+        "connected": whatsapp_connected_state["connected"],
+        "phone": whatsapp_connected_state.get("phone"),
     }
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            r = await client.post(f"{WHATSAPP_BRIDGE}/reset")
-            if r.status_code == 200:
-                return {"success": True, "message": "Bridge reset, QR generating..."}
-            return {"success": False, "message": "Bridge returned error"}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
 
 # ============================================================
 # MESSAGE TEMPLATES
@@ -865,7 +933,7 @@ async def root():
         return {
             "status": "✅ MechTrack API Running",
             "shop_name": SHOP_NAME,
-            "whatsapp_connected": info.get("ready", False),
+            "whatsapp_connected": info.get("ready", False) or whatsapp_connected_state["connected"],
             "version": "2.0.0",
             "port": 4321,
             "jobs_count": len(jobs_db),
