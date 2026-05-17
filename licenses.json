@@ -1,15 +1,14 @@
 {
-  "MECH-8EB1-ZWOM-EH18": {
-    "license_key": "MECH-8EB1-ZWOM-EH18",
-    "license_key_hash": "1c6df16fef5991bf27240113b8fc8c0757fa70306277c5fac545201392548124",
-    "client_name": "sadgd",
-    "client_email": "sdfad",
-    "issued_date": "2026-05-15T14:32:53.903949",
-    "expiry_date": "2026-06-14T14:32:53.903949",
+  "MECH-LAN3-X75C-8PHQ": {
+    "license_key": "MECH-LAN3-X75C-8PHQ",
+    "license_key_hash": "2f81a4632982efb993dd60e00cf498d3a00ff28ca2947aa2f6e4261fddd44517",
+    "client_name": "mechanics",
+    "client_email": "lancexlabs@gmail.com",
+    "issued_date": "2026-05-17T17:52:47.637216",
+    "expiry_date": "2026-06-16T17:52:47.637216",
     "duration_months": 1,
     "price": 999,
     "is_active": true,
-    "activated_on": null,
-    "created_at": "2026-05-15T14:32:53.904041"
+    "created_at": "2026-05-17T17:52:47.637216"
   }
 }

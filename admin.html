@@ -2,197 +2,375 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>MechTrack — Workshop Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* Your existing CSS - keep the same */
-        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-        :root{--bg:#080c14;--surface:#0f1623;--card:#141c2e;--card-hover:#182035;--border:#1e2a42;--border-lit:#2e3f60;--gold:#e8b84b;--gold-dim:#c9962a;--gold-glow:rgba(232,184,75,0.15);--teal:#26c6b0;--blue:#3b82f6;--red:#ef4444;--green:#22c55e;--amber:#f59e0b;--text:#e8eaf0;--text-2:#8492a8;--text-3:#4a5570;--radius:16px;--radius-sm:10px;--shadow:0 8px 32px rgba(0,0,0,0.4);}
-        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-        ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--border-lit);border-radius:4px;}
-        .license-overlay{position:fixed;inset:0;background:radial-gradient(ellipse at center,#0d1526 0%,#050810 100%);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;}
-        .license-modal{background:var(--surface);border:1px solid var(--border-lit);border-radius:28px;width:100%;max-width:460px;padding:48px 36px;text-align:center;}
-        .license-icon-wrap{width:80px;height:80px;margin:0 auto 28px;background:var(--gold-glow);border:1px solid rgba(232,184,75,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;}
-        .license-modal h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--gold);}
-        .license-input{width:100%;padding:15px 18px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Courier New',monospace;font-size:15px;text-align:center;}
-        .license-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border:none;border-radius:var(--radius-sm);color:#0a0a0a;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;}
-        .lic-error{color:var(--red);font-size:13px;margin-top:14px;display:none;}
-        .demo-hint{margin-top:20px;font-size:12px;color:var(--text-3);}
-        .spinner{width:18px;height:18px;border:2px solid rgba(232,184,75,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;}
-        @keyframes spin{to{transform:rotate(360deg);}}
-        .app-container{display:none;}
-        .sidebar{position:fixed;left:0;top:0;width:264px;height:100vh;background:var(--surface);border-right:1px solid var(--border);z-index:100;overflow-y:auto;display:flex;flex-direction:column;}
-        .logo{padding:24px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
-        .logo-mark{width:42px;height:42px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
-        .logo-text{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);}
-        .logo-text em{background:linear-gradient(135deg,var(--gold),var(--gold-dim));-webkit-background-clip:text;background-clip:text;color:transparent;}
-        .wa-card{margin:16px 14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);}
-        .wa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-        .wa-status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text-2);}
-        .dot{width:9px;height:9px;border-radius:50%;}.dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}.dot.off{background:var(--red);}
-        .wa-qr-box{margin-top:10px;padding:14px;background:white;border-radius:var(--radius-sm);display:none;text-align:center;}
-        .wa-qr-box img{width:180px;height:180px;display:block;margin:0 auto;border-radius:8px;}
-        .wa-btn{width:100%;padding:9px 12px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-top:7px;display:flex;align-items:center;justify-content:center;gap:6px;}
-        .wa-btn-connect{background:linear-gradient(135deg,#25D366,#128C7E);color:white;}
-        .wa-btn-refresh{background:var(--card-hover);color:var(--text-2);display:none;}
-        .wa-btn-disconnect{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.2);display:none;}
-        nav{padding:16px 12px;flex:1;}
-        .nav-section-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;padding:0 8px;margin:14px 0 6px;}
-        .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;color:var(--text-2);background:none;width:100%;text-align:left;font-size:13px;font-family:'DM Sans',sans-serif;border:none;}
-        .nav-item:hover{background:var(--card);color:var(--text);}
-        .nav-item.active{background:var(--gold-glow);color:var(--gold);border:1px solid rgba(232,184,75,0.2);}
-        .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text-3);}
-        .main{margin-left:264px;min-height:100vh;}
-        .topbar{height:66px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50;}
-        .topbar-left{display:flex;align-items:center;gap:14px;}
-        .hamburger{display:none;padding:8px;background:transparent;color:var(--text-2);cursor:pointer;border:none;}
-        .page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);}
-        .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:40px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;}
-        .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#0a0a0a;}
-        .btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border);}
-        .content{padding:28px;}
-        .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px;}
-        .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;}
-        .stat-accent{position:absolute;top:0;left:0;right:0;height:3px;}
-        .stat-icon-wrap{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;}
-        .stat-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600;}
-        .stat-value{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--text);line-height:1;}
-        .dash-bottom{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-        .dash-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-        .dash-section-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-        .dash-section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
-        .dash-empty{padding:40px 20px;text-align:center;color:var(--text-3);}
-        .dash-job-row{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
-        .dash-job-row:hover{background:var(--card-hover);}
-        .dash-job-name{font-weight:600;font-size:13px;color:var(--text);}
-        .dash-job-meta{font-size:11px;color:var(--text-3);margin-top:2px;}
-        .toolbar{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
-        .search-box{flex:1;position:relative;min-width:200px;}
-        .search-box input{width:100%;padding:11px 16px 11px 42px;background:var(--card);border:1px solid var(--border);border-radius:40px;color:var(--text);font-size:13px;}
-        .search-box i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-3);}
-        .filters{display:flex;gap:6px;flex-wrap:wrap;}
-        .filter-btn{padding:7px 14px;border-radius:40px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text-2);}
-        .filter-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#0a0a0a;border-color:transparent;}
-        .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-        .table-scroll{overflow-x:auto;}
-        table{width:100%;border-collapse:collapse;min-width:720px;}
-        th{padding:13px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;border-bottom:1px solid var(--border);}
-        td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text-2);}
-        .job-num{font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);}
-        .cust-name{font-weight:600;color:var(--text);}
-        .cust-phone{font-size:11px;color:var(--text-3);}
-        .vehicle-tag{background:rgba(59,130,246,0.1);color:#60a5fa;padding:3px 9px;border-radius:6px;font-size:12px;display:inline-block;}
-        .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:30px;font-size:11px;font-weight:700;}
-        .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;}
-        .b-received{background:rgba(148,163,184,0.1);color:#94a3b8;}
-        .b-ready{background:rgba(34,197,94,0.12);color:#4ade80;}
-        .action-btn{padding:5px 11px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:none;margin-right:4px;}
-        .ab-view{background:rgba(232,184,75,0.1);color:var(--gold);}
-        .ab-update{background:rgba(34,197,94,0.1);color:#4ade80;}
-        .modal-overlay{position:fixed;inset:0;background:rgba(5,8,16,0.92);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;}
-        .modal-overlay.open{display:flex;}
-        .modal{background:var(--surface);border:1px solid var(--border-lit);border-radius:22px;width:100%;max-width:560px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;}
-        .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-        .modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;}
-        .modal-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-3);cursor:pointer;}
-        .modal-body{padding:24px;overflow-y:auto;flex:1;}
-        .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
-        .form-group{margin-bottom:16px;}
-        .form-group label{display:block;font-size:11px;font-weight:700;margin-bottom:6px;color:var(--text-2);text-transform:uppercase;}
-        .form-group input,.form-group textarea,.form-group select{width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;}
-        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-        .toast{position:fixed;bottom:24px;right:24px;padding:13px 18px;background:var(--card);border:1px solid var(--border-lit);border-radius:var(--radius-sm);z-index:9000;display:flex;align-items:center;gap:10px;}
-        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
-        @media (max-width:768px){.sidebar{transform:translateX(-100%);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.hamburger{display:flex;}.stats-grid{grid-template-columns:repeat(2,1fr);}.form-row{grid-template-columns:1fr;}}
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg:#080c14; --surface:#0f1623; --card:#141c2e; --card-hover:#182035;
+            --border:#1e2a42; --border-lit:#2e3f60;
+            --gold:#e8b84b; --gold-dim:#c9962a; --gold-glow:rgba(232,184,75,0.15);
+            --teal:#26c6b0; --blue:#3b82f6; --red:#ef4444; --green:#22c55e; --amber:#f59e0b;
+            --text:#e8eaf0; --text-2:#8492a8; --text-3:#4a5570;
+            --radius:16px; --radius-sm:10px; --shadow:0 8px 32px rgba(0,0,0,0.4);
+        }
+        body { font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+        ::-webkit-scrollbar{width:5px;height:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border-lit);border-radius:4px;}
+
+        .license-overlay { position:fixed;inset:0;background:radial-gradient(ellipse at center,#0d1526 0%,#050810 100%);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px; }
+        .license-modal { background:var(--surface);border:1px solid var(--border-lit);border-radius:28px;width:100%;max-width:460px;padding:48px 36px;text-align:center;position:relative;overflow:hidden;animation:modalIn .4s cubic-bezier(.16,1,.3,1); }
+        .license-modal::before { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+        @keyframes modalIn { from{opacity:0;transform:translateY(24px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+        .license-icon-wrap { width:80px;height:80px;margin:0 auto 28px;background:var(--gold-glow);border:1px solid rgba(232,184,75,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px; }
+        .license-modal h2 { font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--gold);margin-bottom:10px; }
+        .license-modal .sub { color:var(--text-2);font-size:14px;margin-bottom:32px; }
+        .license-input { width:100%;padding:15px 18px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Courier New',monospace;font-size:15px;text-align:center;letter-spacing:2px;outline:none;transition:border-color .2s;margin-bottom:16px; }
+        .license-input:focus { border-color:var(--gold); }
+        .license-btn { width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border:none;border-radius:var(--radius-sm);color:#0a0a0a;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s;letter-spacing:.5px; }
+        .license-btn:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,184,75,.35); }
+        .license-btn:disabled { opacity:.7;cursor:not-allowed;transform:none; }
+        .lic-error { color:var(--red);font-size:13px;margin-top:14px;display:none;background:rgba(239,68,68,.08);padding:8px 14px;border-radius:8px;border:1px solid rgba(239,68,68,.2); }
+        .demo-hint { margin-top:20px;font-size:12px;color:var(--text-3); }
+        .demo-hint code { color:var(--gold);background:var(--gold-glow);padding:2px 8px;border-radius:4px;font-size:12px; }
+
+        .spinner { width:18px;height:18px;border:2px solid rgba(232,184,75,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+
+        .app-container { display:none; }
+        .sidebar { position:fixed;left:0;top:0;width:264px;height:100vh;background:var(--surface);border-right:1px solid var(--border);z-index:100;overflow-y:auto;display:flex;flex-direction:column;transition:transform .3s ease; }
+        .logo { padding:24px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0; }
+        .logo-mark { width:42px;height:42px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0; }
+        .logo-text { font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text); }
+        .logo-text em { font-style:normal;background:linear-gradient(135deg,var(--gold),var(--gold-dim));-webkit-background-clip:text;background-clip:text;color:transparent; }
+
+        .wa-card { margin:16px 14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);flex-shrink:0; }
+        .wa-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:10px; }
+        .wa-status { display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text-2); }
+        .dot { width:9px;height:9px;border-radius:50%;flex-shrink:0; }
+        .dot.on  { background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite; }
+        .dot.off { background:var(--red); }
+        .dot.wait{ background:var(--amber);animation:pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        
+        .wa-btn { width:100%;padding:9px 12px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:7px;display:flex;align-items:center;justify-content:center;gap:6px; }
+        .wa-btn:disabled { opacity:.6;cursor:not-allowed; }
+        .wa-btn-connect    { background:linear-gradient(135deg,#25D366,#128C7E);color:white; }
+        .wa-btn-connect:hover:not(:disabled) { transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,211,102,.3); }
+        .wa-btn-disconnect { background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);display:none; }
+        .wa-btn-disconnect:hover:not(:disabled) { background:rgba(239,68,68,.2); }
+
+        nav { padding:16px 12px;flex:1; }
+        .nav-section-label { font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;padding:0 8px;margin:14px 0 6px; }
+        .nav-item { display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;transition:all .2s;color:var(--text-2);border:none;background:none;width:100%;text-align:left;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif; }
+        .nav-item i { width:18px;text-align:center;font-size:14px; }
+        .nav-item:hover { background:var(--card);color:var(--text); }
+        .nav-item.active { background:var(--gold-glow);color:var(--gold);border:1px solid rgba(232,184,75,.2); }
+        .sidebar-footer { padding:16px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text-3);flex-shrink:0; }
+
+        .main { margin-left:264px;min-height:100vh;transition:margin-left .3s ease; }
+        .topbar { height:66px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50; }
+        .topbar-left { display:flex;align-items:center;gap:14px; }
+        .hamburger { display:none;padding:8px;border:none;background:transparent;color:var(--text-2);cursor:pointer;border-radius:8px;font-size:18px; }
+        .page-title { font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text); }
+        .topbar-right { display:flex;align-items:center;gap:10px; }
+        .btn { display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:40px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .25s;font-family:'DM Sans',sans-serif; }
+        .btn-primary { background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#0a0a0a; }
+        .btn-primary:hover { transform:translateY(-1px);box-shadow:0 6px 20px rgba(232,184,75,.35); }
+        .btn-ghost { background:transparent;color:var(--text-2);border:1px solid var(--border); }
+        .btn-ghost:hover { border-color:var(--border-lit);color:var(--text); }
+        .content { padding:28px; }
+
+        .stats-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px; }
+        .stat-card { background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:all .25s;cursor:default; }
+        .stat-card:hover { border-color:var(--border-lit);transform:translateY(-2px); }
+        .stat-accent { position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0; }
+        .stat-icon-wrap { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px; }
+        .stat-label { font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600; }
+        .stat-value { font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--text);line-height:1; }
+        .dash-bottom { display:grid;grid-template-columns:1fr 1fr;gap:20px; }
+        .dash-section { background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden; }
+        .dash-section-header { padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+        .dash-section-title { font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text); }
+        .dash-empty { padding:40px 20px;text-align:center;color:var(--text-3);font-size:13px; }
+        .dash-job-row { padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;transition:background .15s;cursor:pointer; }
+        .dash-job-row:last-child { border-bottom:none; }
+        .dash-job-row:hover { background:var(--card-hover); }
+        .dash-job-name { font-weight:600;font-size:13px;color:var(--text); }
+        .dash-job-meta { font-size:11px;color:var(--text-3);margin-top:2px; }
+
+        .toolbar { display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;align-items:center; }
+        .search-box { flex:1;position:relative;min-width:200px; }
+        .search-box input { width:100%;padding:11px 16px 11px 42px;background:var(--card);border:1px solid var(--border);border-radius:40px;color:var(--text);font-size:13px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s; }
+        .search-box input:focus { border-color:var(--border-lit); }
+        .search-box i { position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:13px; }
+        .filters { display:flex;gap:6px;flex-wrap:wrap; }
+        .filter-btn { padding:7px 14px;border-radius:40px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text-2);transition:all .2s;font-family:'DM Sans',sans-serif; }
+        .filter-btn:hover { border-color:var(--border-lit);color:var(--text); }
+        .filter-btn.active { background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#0a0a0a;border-color:transparent; }
+        .table-wrap { background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden; }
+        .table-scroll { overflow-x:auto; }
+        table { width:100%;border-collapse:collapse;min-width:720px; }
+        thead tr { background:var(--surface); }
+        th { padding:13px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);white-space:nowrap; }
+        td { padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text-2);vertical-align:middle; }
+        tr:last-child td { border-bottom:none; }
+        tbody tr { transition:background .15s; }
+        tbody tr:hover td { background:var(--card-hover); }
+        .job-num { font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);font-size:12px; }
+        .cust-name { font-weight:600;color:var(--text);font-size:13px; }
+        .cust-phone { font-size:11px;color:var(--text-3);margin-top:2px; }
+        .vehicle-tag { background:rgba(59,130,246,.1);color:#60a5fa;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;display:inline-block; }
+        .vehicle-sub { font-size:11px;color:var(--text-3);margin-top:3px; }
+        .complaint-text { color:var(--text-2);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+        .badge { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:30px;font-size:11px;font-weight:700;white-space:nowrap; }
+        .badge::before { content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0; }
+        .b-received      { background:rgba(148,163,184,.1);color:#94a3b8; }
+        .b-diagnosing    { background:rgba(139,92,246,.12);color:#a78bfa; }
+        .b-waiting_parts { background:rgba(245,158,11,.12);color:#fbbf24; }
+        .b-in_progress   { background:rgba(59,130,246,.12);color:#60a5fa; }
+        .b-quality_check { background:rgba(6,182,212,.12);color:#22d3ee; }
+        .b-ready         { background:rgba(34,197,94,.12);color:#4ade80; }
+        .b-delivered     { background:rgba(232,184,75,.12);color:var(--gold); }
+        .action-btn { padding:5px 11px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .2s;margin-right:4px;font-family:'DM Sans',sans-serif; }
+        .ab-view   { background:rgba(232,184,75,.1);color:var(--gold); }
+        .ab-view:hover   { background:var(--gold);color:#0a0a0a; }
+        .ab-update { background:rgba(34,197,94,.1);color:#4ade80; }
+        .ab-update:hover { background:#22c55e;color:white; }
+        .pagination { display:flex;justify-content:space-between;align-items:center;padding:14px 20px;flex-wrap:wrap;gap:10px; }
+        .page-info { font-size:12px;color:var(--text-3); }
+        .page-btns { display:flex;gap:5px; }
+        .page-btn { width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-2);cursor:pointer;font-size:13px;transition:all .2s;font-family:'DM Sans',sans-serif; }
+        .page-btn:hover,.page-btn.active { background:var(--gold);color:#0a0a0a;border-color:var(--gold); }
+
+        .modal-overlay { position:fixed;inset:0;background:rgba(5,8,16,.92);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px; }
+        .modal-overlay.open { display:flex; }
+        .modal { background:var(--surface);border:1px solid var(--border-lit);border-radius:22px;width:100%;max-width:560px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;animation:modalIn .3s cubic-bezier(.16,1,.3,1);position:relative; }
+        .modal::before { content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(232,184,75,.4),transparent); }
+        .modal-header { padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0; }
+        .modal-title { font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text); }
+        .modal-close { width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-3);cursor:pointer;font-size:14px;transition:all .2s;display:flex;align-items:center;justify-content:center; }
+        .modal-close:hover { background:var(--red);color:white;border-color:var(--red); }
+        .modal-body { padding:24px;overflow-y:auto;flex:1; }
+        .modal-footer { padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0; }
+        .form-group { margin-bottom:16px; }
+        .form-group label { display:block;font-size:11px;font-weight:700;margin-bottom:6px;color:var(--text-2);text-transform:uppercase;letter-spacing:1px; }
+        .form-group input,.form-group textarea,.form-group select { width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s; }
+        .form-group input:focus,.form-group textarea:focus,.form-group select:focus { border-color:var(--border-lit); }
+        .form-group select { appearance:none;cursor:pointer; }
+        .form-group textarea { resize:vertical;min-height:80px; }
+        .form-row { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+        .job-detail-grid { display:grid;gap:14px; }
+        .detail-section { background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px; }
+        .detail-section-title { font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px; }
+        .detail-row { display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;gap:12px; }
+        .detail-row:last-child { border-bottom:none; }
+        .detail-key { color:var(--text-3);font-size:12px;flex-shrink:0; }
+        .detail-val { color:var(--text);font-weight:500;text-align:right; }
+        .status-progress { display:flex;align-items:center;margin-top:8px;overflow-x:auto;padding-bottom:4px; }
+        .sp-step { display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px; }
+        .sp-dot { width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-3);background:var(--surface);flex-shrink:0; }
+        .sp-dot.done    { background:var(--gold);border-color:var(--gold);color:#0a0a0a; }
+        .sp-dot.current { background:var(--gold-glow);border-color:var(--gold);color:var(--gold); }
+        .sp-label { font-size:9px;color:var(--text-3);text-align:center;line-height:1.2; }
+        .sp-label.active { color:var(--gold); }
+        .sp-line { flex:1;height:2px;background:var(--border);min-width:20px;margin-top:-16px; }
+        .sp-line.done { background:var(--gold); }
+
+        .toast { position:fixed;bottom:24px;right:24px;padding:13px 18px;background:var(--card);border:1px solid var(--border-lit);border-radius:var(--radius-sm);font-size:13px;font-weight:500;z-index:9000;max-width:340px;display:flex;align-items:center;gap:10px;animation:toastIn .3s cubic-bezier(.16,1,.3,1);box-shadow:var(--shadow); }
+        @keyframes toastIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+        .toast-icon { font-size:16px;flex-shrink:0; }
+        .toast.success { border-left:3px solid var(--green); }
+        .toast.error   { border-left:3px solid var(--red); }
+        .toast.info    { border-left:3px solid var(--blue); }
+
+        .sidebar-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99; }
+
+        @media (max-width:1200px) { .stats-grid{grid-template-columns:repeat(3,1fr)} }
+        @media (max-width:900px)  { .dash-bottom{grid-template-columns:1fr} }
+        @media (max-width:768px) {
+            .sidebar{transform:translateX(-100%)} .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block;opacity:0;pointer-events:none;transition:opacity .3s}
+            .sidebar-overlay.visible{opacity:1;pointer-events:all}
+            .main{margin-left:0} .hamburger{display:flex}
+            .topbar{padding:0 16px} .content{padding:16px}
+            .stats-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+            .form-row{grid-template-columns:1fr}
+            .filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+            .toast{right:12px;bottom:12px;left:12px;max-width:none}
+        }
+        a { color:inherit; text-decoration:none; }
     </style>
 </head>
 <body>
 
-<!-- LICENSE OVERLAY -->
 <div id="licenseOverlay" class="license-overlay">
     <div class="license-modal">
         <div class="license-icon-wrap">⚙️</div>
         <h2>Activate MechTrack</h2>
         <p class="sub">Enter your license key to unlock the workshop panel</p>
-        <input type="text" id="licenseKeyInput" class="license-input" placeholder="MECH-XXXX-XXXX-XXXX">
-        <button class="license-btn" id="activateLicenseBtn"><i class="fas fa-unlock-alt"></i> Activate License</button>
+        <input type="text" id="licenseKeyInput" class="license-input" placeholder="MECH-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
+        <button class="license-btn" id="activateLicenseBtn"><i class="fas fa-unlock-alt" style="margin-right:6px"></i>Activate License</button>
         <div id="licenseError" class="lic-error"></div>
         <p class="demo-hint">Demo key: <code>MECH-DEMO-2024-001</code></p>
     </div>
 </div>
 
-<!-- APP -->
 <div id="appContainer" class="app-container">
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <aside class="sidebar" id="sidebar">
-        <div class="logo"><div class="logo-mark">🔧</div><div class="logo-text">Mech<em>Track</em></div></div>
-        <div class="wa-card">
-            <div class="wa-header"><div class="wa-status"><div class="dot off" id="waDot"></div><span id="waStatusText">Not connected</span></div><i class="fab fa-whatsapp" style="color:#25D366;font-size:18px"></i></div>
-            <div id="waQrBox" class="wa-qr-box"></div>
-            <button class="wa-btn wa-btn-connect" id="connectWaBtn"><i class="fab fa-whatsapp"></i> Connect WhatsApp</button>
-            <button class="wa-btn wa-btn-refresh" id="refreshWaBtn"><i class="fas fa-rotate"></i> Refresh Status</button>
-            <button class="wa-btn wa-btn-disconnect" id="disconnectWaBtn"><i class="fas fa-plug-circle-xmark"></i> Disconnect</button>
+        <div class="logo">
+           
+            <div class="logo-text">Mech<em>Track</em></div>
         </div>
+
+        <div class="wa-card">
+            <div class="wa-header">
+                <div class="wa-status">
+                   
+                    
+                </div>
+                
+            </div>
+            
+            <button class="wa-btn wa-btn-connect" id="linkWhatsAppBtn">
+                <a href="whatsapp-qr.html"><i class="fab fa-whatsapp"></i> Link WhatsApp Device</a>
+                
+            </button>
+            
+            <button class="wa-btn wa-btn-disconnect" id="disconnectWaBtn" style="display:none;">
+                <i class="fas fa-plug-circle-xmark"></i> Disconnect
+            </button>
+        </div>
+
         <nav>
             <div class="nav-section-label">Menu</div>
             <button class="nav-item active" data-page="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</button>
             <button class="nav-item" data-page="jobs"><i class="fas fa-list-check"></i> All Jobs</button>
             <button class="nav-item" id="newJobNavBtn"><i class="fas fa-plus-circle"></i> New Job Entry</button>
         </nav>
-        <div class="sidebar-footer">MechTrack v2.0 · <span id="licenseTag">—</span></div>
+
+        <div class="sidebar-footer">MechTrack v2.0 &nbsp;·&nbsp; <span id="licenseTag">—</span></div>
     </aside>
 
-    <main class="main">
+    <main class="main" id="mainContent">
         <div class="topbar">
-            <div class="topbar-left"><button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button><div class="page-title" id="pageTitle">Dashboard</div></div>
-            <div class="topbar-right"><button class="btn btn-ghost" id="manualRefreshBtn"><i class="fas fa-rotate"></i></button><button class="btn btn-primary" id="newJobBtn"><i class="fas fa-plus"></i> New Job</button></div>
+            <div class="topbar-left">
+                <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+                <div class="page-title" id="pageTitle">Dashboard</div>
+            </div>
+            <div class="topbar-right">
+                <button class="btn btn-ghost" id="manualRefreshBtn" title="Refresh"><i class="fas fa-rotate"></i></button>
+                <button class="btn btn-primary" id="newJobBtn"><i class="fas fa-plus"></i> New Job</button>
+            </div>
         </div>
+
         <div id="contentArea" class="content">
             <div id="dashboardView">
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--blue),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(59,130,246,0.12);color:#60a5fa"><i class="fas fa-database"></i></div><div class="stat-label">Total Jobs</div><div class="stat-value" id="stat-total">—</div></div>
-                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--teal),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(38,198,176,0.12);color:var(--teal)"><i class="fas fa-wrench"></i></div><div class="stat-label">Active Jobs</div><div class="stat-value" id="stat-active">—</div></div>
-                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--green),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(34,197,94,0.12);color:var(--green)"><i class="fas fa-check-circle"></i></div><div class="stat-label">Ready for Pickup</div><div class="stat-value" id="stat-ready">—</div></div>
-                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--amber),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(245,158,11,0.12);color:var(--amber)"><i class="fas fa-clock"></i></div><div class="stat-label">Waiting Parts</div><div class="stat-value" id="stat-waiting">—</div></div>
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--blue),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(59,130,246,.12);color:#60a5fa"><i class="fas fa-database"></i></div><div class="stat-label">Total Jobs</div><div class="stat-value" id="stat-total">—</div></div>
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--teal),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(38,198,176,.12);color:var(--teal)"><i class="fas fa-wrench"></i></div><div class="stat-label">Active Jobs</div><div class="stat-value" id="stat-active">—</div></div>
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--green),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(34,197,94,.12);color:var(--green)"><i class="fas fa-check-circle"></i></div><div class="stat-label">Ready for Pickup</div><div class="stat-value" id="stat-ready">—</div></div>
+                    <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--amber),transparent)"></div><div class="stat-icon-wrap" style="background:rgba(245,158,11,.12);color:var(--amber)"><i class="fas fa-clock"></i></div><div class="stat-label">Waiting Parts</div><div class="stat-value" id="stat-waiting">—</div></div>
                     <div class="stat-card"><div class="stat-accent" style="background:linear-gradient(90deg,var(--gold),transparent)"></div><div class="stat-icon-wrap" style="background:var(--gold-glow);color:var(--gold)"><i class="fas fa-truck"></i></div><div class="stat-label">Delivered</div><div class="stat-value" id="stat-delivered">—</div></div>
                 </div>
                 <div class="dash-bottom">
-                    <div class="dash-section"><div class="dash-section-header"><div class="dash-section-title">Recent Jobs</div><button class="btn btn-ghost" style="padding:5px 12px;font-size:12px" onclick="switchToJobs()">View All</button></div><div id="recentJobsList"><div class="dash-empty"><div class="spinner"></div></div></div></div>
-                    <div class="dash-section"><div class="dash-section-header"><div class="dash-section-title">Ready for Pickup</div><span class="badge b-ready" id="readyCount">0</span></div><div id="readyJobsList"><div class="dash-empty">Loading…</div></div></div>
+                    <div class="dash-section">
+                        <div class="dash-section-header"><div class="dash-section-title">Recent Jobs</div><button class="btn btn-ghost" style="padding:5px 12px;font-size:12px" onclick="switchToJobs()">View All</button></div>
+                        <div id="recentJobsList"><div class="dash-empty"><div class="spinner"></div></div></div>
+                    </div>
+                    <div class="dash-section">
+                        <div class="dash-section-header"><div class="dash-section-title">Ready for Pickup</div><span class="badge b-ready" id="readyCount">0</span></div>
+                        <div id="readyJobsList"><div class="dash-empty">Loading…</div></div>
+                    </div>
                 </div>
             </div>
+
             <div id="jobsView" style="display:none">
-                <div class="toolbar"><div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search..."></div><div class="filters" id="filterTabs"><button class="filter-btn active" data-filter="all">All</button><button class="filter-btn" data-filter="received">Received</button><button class="filter-btn" data-filter="diagnosing">Diagnosing</button><button class="filter-btn" data-filter="waiting_parts">Waiting</button><button class="filter-btn" data-filter="in_progress">In Progress</button><button class="filter-btn" data-filter="quality_check">QC</button><button class="filter-btn" data-filter="ready">Ready</button><button class="filter-btn" data-filter="delivered">Delivered</button></div></div>
-                <div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Job #</th><th>Customer</th><th>Vehicle</th><th>Complaint</th><th>Status</th><th>Delivery</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="jobsTableBody"><tr><td colspan="8" style="text-align:center;padding:60px"><div class="spinner"></div> Loading...</td></tr></tbody></table></div><div class="pagination"><span class="page-info" id="paginationInfo"></span><div class="page-btns" id="paginationButtons"></div></div></div>
+                <div class="toolbar">
+                    <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by name, vehicle, job no…"></div>
+                    <div class="filters" id="filterTabs">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="received">Received</button>
+                        <button class="filter-btn" data-filter="diagnosing">Diagnosing</button>
+                        <button class="filter-btn" data-filter="waiting_parts">Waiting</button>
+                        <button class="filter-btn" data-filter="in_progress">In Progress</button>
+                        <button class="filter-btn" data-filter="quality_check">QC</button>
+                        <button class="filter-btn" data-filter="ready">Ready</button>
+                        <button class="filter-btn" data-filter="delivered">Delivered</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <div class="table-scroll">
+                        <table>
+                            <thead><tr><th>Job #</th><th>Customer</th><th>Vehicle</th><th>Complaint</th><th>Status</th><th>Delivery</th><th>Amount</th><th>Actions</th></tr></thead>
+                            <tbody id="jobsTableBody"><tr><td colspan="8" style="text-align:center;padding:60px"><div class="spinner"></div> Loading jobs…</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination"><span class="page-info" id="paginationInfo"></span><div class="page-btns" id="paginationButtons"></div></div>
+                </div>
             </div>
         </div>
     </main>
 </div>
 
-<!-- MODALS -->
-<div id="newJobModal" class="modal-overlay"><div class="modal"><div class="modal-header"><div class="modal-title">New Service Entry</div><button class="modal-close" id="closeNewJobModal"><i class="fas fa-times"></i></button></div><div class="modal-body"><form id="newJobForm"><div class="form-row"><div class="form-group"><label>Customer Name *</label><input type="text" name="customer_name" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" name="customer_phone" required></div></div><div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input type="text" name="vehicle_number" required></div><div class="form-group"><label>Make / Brand</label><input type="text" name="vehicle_make"></div></div><div class="form-row"><div class="form-group"><label>Model</label><input type="text" name="vehicle_model"></div><div class="form-group"><label>Estimated Cost (₹)</label><input type="number" name="estimated_cost"></div></div><div class="form-row"><div class="form-group"><label>Estimated Delivery</label><input type="date" name="estimated_delivery"></div><div class="form-group"><label>Assigned Mechanic</label><input type="text" name="assigned_mechanic"></div></div><div class="form-group"><label>Customer Complaint *</label><textarea name="complaint" rows="3" required></textarea></div><div class="form-group"><label>Internal Notes</label><textarea name="notes" rows="2"></textarea></div></form></div><div class="modal-footer"><button class="btn btn-ghost" id="cancelNewJobBtn">Cancel</button><button class="btn btn-primary" id="submitJobBtn">Create Job</button></div></div></div>
+<div id="newJobModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header"><div class="modal-title"><i class="fas fa-plus-circle" style="color:var(--gold);margin-right:8px"></i>New Service Entry</div><button class="modal-close" id="closeNewJobModal"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+            <form id="newJobForm">
+                <div class="form-row"><div class="form-group"><label>Customer Name *</label><input type="text" name="customer_name" placeholder="Ramesh Kumar" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" name="customer_phone" placeholder="9876543210" required></div></div>
+                <div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input type="text" name="vehicle_number" placeholder="TN09AB1234" required></div><div class="form-group"><label>Make / Brand</label><input type="text" name="vehicle_make" placeholder="Honda"></div></div>
+                <div class="form-row"><div class="form-group"><label>Model</label><input type="text" name="vehicle_model" placeholder="Activa 6G"></div><div class="form-group"><label>Estimated Cost (₹)</label><input type="number" name="estimated_cost" placeholder="1500"></div></div>
+                <div class="form-row"><div class="form-group"><label>Estimated Delivery</label><input type="date" name="estimated_delivery"></div><div class="form-group"><label>Assigned Mechanic</label><input type="text" name="assigned_mechanic" placeholder="Suresh"></div></div>
+                <div class="form-group"><label>Customer Complaint *</label><textarea name="complaint" rows="3" placeholder="Engine not starting, oil leak…" required></textarea></div>
+                <div class="form-group"><label>Internal Notes</label><textarea name="notes" rows="2" placeholder="Any internal notes…"></textarea></div>
+            </form>
+        </div>
+        <div class="modal-footer"><button class="btn btn-ghost" id="cancelNewJobBtn">Cancel</button><button class="btn btn-primary" id="submitJobBtn"><i class="fas fa-check"></i> Create Job</button></div>
+    </div>
+</div>
 
-<div id="jobDetailModal" class="modal-overlay"><div class="modal" style="max-width:680px"><div class="modal-header"><div class="modal-title">Job Details</div><button class="modal-close" id="closeJobDetailModal"><i class="fas fa-times"></i></button></div><div class="modal-body" id="jobDetailBody"><div style="text-align:center;padding:40px"><div class="spinner"></div></div></div></div></div>
+<div id="jobDetailModal" class="modal-overlay">
+    <div class="modal" style="max-width:680px">
+        <div class="modal-header"><div class="modal-title"><i class="fas fa-file-lines" style="color:var(--gold);margin-right:8px"></i>Job Details</div><button class="modal-close" id="closeJobDetailModal"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body" id="jobDetailBody"><div style="text-align:center;padding:40px"><div class="spinner"></div></div></div>
+    </div>
+</div>
 
-<div id="updateStatusModal" class="modal-overlay"><div class="modal"><div class="modal-header"><div class="modal-title">Update Job Status</div><button class="modal-close" id="closeUpdateModal"><i class="fas fa-times"></i></button></div><div class="modal-body"><div class="form-group"><label>New Status</label><select id="statusSelect"><option value="received">Received</option><option value="diagnosing">Diagnosing</option><option value="waiting_parts">Waiting Parts</option><option value="in_progress">In Progress</option><option value="quality_check">Quality Check</option><option value="ready">Ready for Pickup</option><option value="delivered">Delivered</option></select></div><div class="form-group"><label>Update Message *</label><textarea id="updateMessage" rows="3" placeholder="Message to customer..."></textarea></div><div class="form-row"><div class="form-group"><label>Diagnosis</label><textarea id="updateDiagnosis" rows="2"></textarea></div><div class="form-group"><label>Work Done</label><textarea id="updateWorkDone" rows="2"></textarea></div></div><div class="form-row"><div class="form-group"><label>Parts Used</label><input type="text" id="updatePartsUsed"></div><div class="form-group"><label>Final Cost (₹)</label><input type="number" id="updateFinalCost"></div></div><div class="form-group"><label>Est. Delivery</label><input type="date" id="updateEstDelivery"></div></div><div class="modal-footer"><button class="btn btn-ghost" id="cancelUpdateBtn">Cancel</button><button class="btn btn-primary" id="submitUpdateBtn">Update & Notify</button></div></div></div>
+<div id="updateStatusModal" class="modal-overlay">
+    <div class="modal" style="max-width:520px">
+        <div class="modal-header"><div class="modal-title"><i class="fas fa-rotate" style="color:var(--gold);margin-right:8px"></i>Update Job Status</div><button class="modal-close" id="closeUpdateModal"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+            <div class="form-group"><label>New Status</label><select id="statusSelect"><option value="received">✅ Received</option><option value="diagnosing">🔍 Diagnosing</option><option value="waiting_parts">⏳ Waiting Parts</option><option value="in_progress">🔧 In Progress</option><option value="quality_check">🔎 Quality Check</option><option value="ready">🎉 Ready for Pickup</option><option value="delivered">✔️ Delivered</option></select></div>
+            <div class="form-group"><label>Update Message to Customer *</label><textarea id="updateMessage" rows="3" placeholder="Tell the customer what's happening…"></textarea></div>
+            <div class="form-row"><div class="form-group"><label>Diagnosis</label><textarea id="updateDiagnosis" rows="2" placeholder="Found issue…"></textarea></div><div class="form-group"><label>Work Done</label><textarea id="updateWorkDone" rows="2" placeholder="Replaced brake pads…"></textarea></div></div>
+            <div class="form-row"><div class="form-group"><label>Parts Used</label><input type="text" id="updatePartsUsed" placeholder="Brake pads, oil filter"></div><div class="form-group"><label>Final Cost (₹)</label><input type="number" id="updateFinalCost" placeholder="2500"></div></div>
+            <div class="form-group"><label>Estimated Delivery Date</label><input type="date" id="updateEstDelivery"></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-ghost" id="cancelUpdateBtn">Cancel</button><button class="btn btn-primary" id="submitUpdateBtn"><i class="fab fa-whatsapp"></i> Update &amp; Notify</button></div>
+    </div>
+</div>
 
 <div id="toastContainer"></div>
 
 <script>
-// ============================================
-// FIXED: NO REFRESH, NO DISCONNECT-ON-CONNECT
-// ============================================
 const API_URL = 'http://localhost:4321';
 const PER_PAGE = 10;
+
 let jobs = [];
 let filteredJobs = [];
 let activeFilter = 'all';
 let currentPage = 1;
 let currentView = 'dashboard';
 let currentJobId = null;
-let qrPollTimer = null;
+let appReady = false;
+let waStatusInterval = null;
+let waConnected = false;
+let qrPopupWindow = null;
+let connectionCheckInterval = null;
 
 const STATUS_ORDER = ['received','diagnosing','waiting_parts','in_progress','quality_check','ready','delivered'];
 const STATUS_LABELS = { received:'Received', diagnosing:'Diagnosing', waiting_parts:'Waiting Parts', in_progress:'In Progress', quality_check:'QC', ready:'Ready', delivered:'Delivered' };
@@ -200,315 +378,216 @@ const STATUS_ICONS = { received:'📥', diagnosing:'🔍', waiting_parts:'⏳', 
 
 const $ = id => document.getElementById(id);
 const esc = t => { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; };
-function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }); }
-function fmtMoney(a) { if (!a && a !== 0) return '—'; return '₹' + Number(a).toLocaleString('en-IN'); }
-function timeAgo(d) { if (!d) return ''; const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m}m ago`; const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`; return `${Math.floor(h / 24)}d ago`; }
-function showToast(msg, type = 'success') { const icons = { success:'✅', error:'❌', info:'ℹ️' }; const el = document.createElement('div'); el.className = `toast ${type}`; el.innerHTML = `<span>${icons[type]||'💬'} ${msg}</span>`; $('toastContainer').appendChild(el); setTimeout(() => el.remove(), 4000); }
+const fmtDate = d => !d ? '—' : new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+const fmtMoney = a => (!a && a !== 0) ? '—' : '₹' + Number(a).toLocaleString('en-IN');
+const timeAgo = d => { if (!d) return ''; const m = Math.floor((Date.now() - new Date(d)) / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m}m ago`; const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`; return `${Math.floor(h / 24)}d ago`; };
+
+function showToast(msg, type = 'success') {
+    const icons = { success:'✅', error:'❌', info:'ℹ️' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${icons[type] || '💬'}</span><span>${msg}</span>`;
+    $('toastContainer').appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+}
+
 function openModal(id) { $(id).classList.add('open'); }
 function closeModal(id) { $(id).classList.remove('open'); }
 
 async function apiCall(endpoint, opts = {}) {
     try {
-        const res = await fetch(`${API_URL}${endpoint}`, {
-            headers: { 'Content-Type': 'application/json' },
-            ...opts
-        });
-        if (!res.ok) { let msg = `HTTP ${res.status}`; try { const j = await res.json(); msg = j.detail || j.message || msg; } catch(e) {} throw new Error(msg); }
+        const res = await fetch(`${API_URL}${endpoint}`, { headers: { 'Content-Type': 'application/json' }, ...opts });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();
-    } catch(e) { console.warn('API Error:', e.message); return null; }
+    } catch(e) {
+        console.warn('API:', e.message);
+        return null;
+    }
 }
 
-// LICENSE - CHECK ONCE ONLY
 async function activateLicense() {
     const key = $('licenseKeyInput').value.trim().toUpperCase();
     const errDiv = $('licenseError');
-    if (!key) { errDiv.textContent = 'Enter license key'; errDiv.style.display = 'block'; return; }
     const btn = $('activateLicenseBtn');
-    btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
-    try {
-        const result = await apiCall('/api/license/verify', { method:'POST', body:JSON.stringify({ license_key: key }) });
-        if (result && result.valid) {
-            localStorage.setItem('mechtrack_lic', JSON.stringify({ key, client: result.client_name }));
-            $('licenseOverlay').style.display = 'none';
-            $('appContainer').style.display = 'block';
-            $('licenseTag').textContent = result.client_name;
-            loadDashboard();
-        } else if (key === 'MECH-DEMO-2024-001') {
-            localStorage.setItem('mechtrack_lic', JSON.stringify({ key, client: 'Demo Workshop' }));
-            $('licenseOverlay').style.display = 'none';
-            $('appContainer').style.display = 'block';
-            $('licenseTag').textContent = 'Demo Workshop';
-            loadDashboard();
-        } else {
-            errDiv.textContent = 'Invalid license key';
-            errDiv.style.display = 'block';
-        }
-    } catch(e) { errDiv.textContent = 'Cannot reach server'; errDiv.style.display = 'block'; }
-    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-unlock-alt"></i> Activate License'; }
-}
-
-async function checkExistingLicense() {
-    const saved = localStorage.getItem('mechtrack_lic');
-    if (saved) {
-        $('licenseOverlay').style.display = 'none';
-        $('appContainer').style.display = 'block';
-        try { const lic = JSON.parse(saved); $('licenseTag').textContent = lic.client || '—'; } catch(e) {}
-        return true;
-    }
-    return false;
-}
-
-// ============================================
-// FIXED WHATSAPP - NO DISCONNECT ON CONNECT
-// ============================================
-function clearQrPoll() { if (qrPollTimer) { clearInterval(qrPollTimer); qrPollTimer = null; } }
-
-async function checkWaStatus() {
-    try {
-        const data = await apiCall('/whatsapp-status');
-        if (data) {
-            const dot = $('waDot');
-            const txt = $('waStatusText');
-            if (data.connected || data.ready) {
-                dot.className = 'dot on';
-                txt.textContent = 'Connected';
-                $('connectWaBtn').style.display = 'none';
-                $('refreshWaBtn').style.display = 'block';
-                $('disconnectWaBtn').style.display = 'block';
-                $('waQrBox').style.display = 'none';
-                clearQrPoll();
-            } else {
-                dot.className = 'dot off';
-                txt.textContent = 'Disconnected';
-                $('connectWaBtn').style.display = 'block';
-                $('refreshWaBtn').style.display = 'block';
-                $('disconnectWaBtn').style.display = 'none';
-            }
-        }
-    } catch(e) { console.log('Status check failed:', e); }
-}
-
-async function connectWhatsApp() {
-    const qrBox = $('waQrBox');
-    const btn = $('connectWaBtn');
-    
-    if (!qrBox || !btn) return;
-    
-    // FIXED: Don't disconnect first! Just check current status
+    errDiv.style.display = 'none';
+    if (!key) { errDiv.textContent = 'Please enter your license key'; errDiv.style.display = 'block'; return; }
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div>';
-    qrBox.style.display = 'block';
-    qrBox.innerHTML = '<div style="text-align:center;padding:20px"><div class="spinner"></div><br>Getting QR code...</div>';
-    
     try {
-        // First check if already connected
-        const status = await apiCall('/whatsapp-status');
-        if (status && (status.connected || status.ready)) {
-            qrBox.style.display = 'none';
-            showToast('WhatsApp already connected!');
-            checkWaStatus();
-            return;
+        const result = await apiCall('/api/license/verify', { method: 'POST', body: JSON.stringify({ license_key: key }) });
+        if (result && result.valid) {
+            localStorage.setItem('mechtrack_lic', JSON.stringify({ key, client: result.client_name }));
+            launchApp(result.client_name);
+        } else {
+            errDiv.textContent = (result && result.message) || 'Invalid license key.';
+            errDiv.style.display = 'block';
         }
-        
-        // Get QR code without disconnecting first
-        const data = await apiCall('/whatsapp/qr');
-        
-        if (data && data.qr) {
-            qrBox.innerHTML = `<img src="${data.qr}" style="max-width:100%"><p style="margin-top:10px">Scan with WhatsApp</p><p style="font-size:11px;color:#888">Open WhatsApp → Settings → Linked Devices → Link a Device</p>`;
-            showToast('Scan QR code with your phone', 'info');
-            
-            clearQrPoll();
-            qrPollTimer = setInterval(async () => {
+    } catch(e) { errDiv.textContent = 'Cannot reach server.'; errDiv.style.display = 'block'; }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-unlock-alt"></i>Activate License'; }
+}
+
+function launchApp(clientName) {
+    $('licenseOverlay').style.display = 'none';
+    $('appContainer').style.display = 'block';
+    $('licenseTag').textContent = clientName || '—';
+    appReady = true;
+    wireEvents();
+    switchToDashboard();
+    startWaStatusPolling();
+}
+
+function startWaStatusPolling() {
+    if (waStatusInterval) clearInterval(waStatusInterval);
+    waStatusInterval = setInterval(async () => {
+        try {
+            const data = await apiCall('/whatsapp/status/simple');
+            if (data) {
+                const connected = data.ready === true;
+                if (connected !== waConnected) {
+                    waConnected = connected;
+                    updateWaUI(connected);
+                    if (connected && qrPopupWindow && !qrPopupWindow.closed) {
+                        showToast('✅ WhatsApp Connected!', 'success');
+                        setTimeout(() => { if (qrPopupWindow && !qrPopupWindow.closed) qrPopupWindow.close(); qrPopupWindow = null; }, 3000);
+                    }
+                }
+            }
+        } catch(e) {}
+    }, 5000);
+}
+
+function updateWaUI(connected) {
+    const dot = $('waDot');
+    const statusText = $('waStatusText');
+    const linkBtn = $('linkWhatsAppBtn');
+    const disconnectBtn = $('disconnectWaBtn');
+    if (connected) {
+        dot.className = 'dot on';
+        statusText.textContent = 'Connected';
+        linkBtn.style.display = 'none';
+        disconnectBtn.style.display = 'flex';
+    } else {
+        dot.className = 'dot off';
+        statusText.textContent = 'Not connected';
+        linkBtn.style.display = 'flex';
+        disconnectBtn.style.display = 'none';
+    }
+}
+
+async function openWhatsAppQR() {
+    if (waConnected) { showToast('WhatsApp is already connected!', 'info'); return; }
+    const linkBtn = $('linkWhatsAppBtn');
+    linkBtn.disabled = true;
+    linkBtn.innerHTML = '<div class="spinner"></div> Starting...';
+    try {
+        const result = await apiCall('/whatsapp/connect-on-demand', { method: 'POST' });
+        if (!result || !result.success) { showToast('Failed to start bridge', 'error'); linkBtn.disabled = false; linkBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Link WhatsApp Device'; return; }
+        showToast('Bridge started, opening QR viewer...', 'info');
+        const qrUrl = `whatsapp-qr.html`;
+        qrPopupWindow = window.open(qrUrl, '_blank', 'width=500,height=650,resizable=yes,scrollbars=yes');
+        if (!qrPopupWindow) showToast('Popup blocked! Please allow popups.', 'error');
+        else {
+            showToast('QR viewer opened. Scan to connect.', 'info');
+            if (connectionCheckInterval) clearInterval(connectionCheckInterval);
+            connectionCheckInterval = setInterval(async () => {
                 try {
-                    const s = await apiCall('/whatsapp-status');
-                    if (s && (s.connected || s.ready)) {
-                        clearQrPoll();
-                        qrBox.style.display = 'none';
-                        showToast('WhatsApp connected successfully! ✅');
-                        checkWaStatus();
+                    const status = await apiCall('/whatsapp/status/simple');
+                    if (status && status.ready) {
+                        clearInterval(connectionCheckInterval);
+                        waConnected = true;
+                        updateWaUI(true);
+                        showToast('✅ WhatsApp Connected!', 'success');
+                        if (qrPopupWindow && !qrPopupWindow.closed) qrPopupWindow.close();
+                        qrPopupWindow = null;
                     }
                 } catch(e) {}
-            }, 3000);
-        } else {
-            qrBox.innerHTML = '<div style="padding:20px;color:#c00">QR not available. Make sure bridge is running on port 4322</div>';
+            }, 2000);
+            setTimeout(() => { if (connectionCheckInterval) { clearInterval(connectionCheckInterval); connectionCheckInterval = null; } }, 120000);
         }
-    } catch(e) {
-        console.error('Connection error:', e);
-        qrBox.innerHTML = `<div style="padding:20px;color:#c00">
-            <strong>❌ Cannot reach WhatsApp bridge</strong><br><br>
-            Make sure you ran:<br>
-            <code style="background:#333;padding:4px 8px;display:inline-block;margin-top:8px">node whatsapp-bridge.js</code>
-        </div>`;
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fab fa-whatsapp"></i> Connect WhatsApp';
-    }
+    } catch(error) { showToast('Error: ' + error.message, 'error'); }
+    finally { linkBtn.disabled = false; linkBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Link WhatsApp Device'; }
 }
 
 async function disconnectWhatsApp() {
-    if (!confirm('⚠️ Disconnect WhatsApp?\n\nYou will need to scan QR code again to reconnect.')) return;
-    
-    const btn = $('disconnectWaBtn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<div class="spinner"></div>';
-    }
-    
+    if (!confirm('Disconnect WhatsApp?')) return;
     try {
-        await apiCall('/whatsapp/disconnect', { method: 'POST' });
-        showToast('WhatsApp disconnected');
-        
-        // Clear QR poll if any
-        clearQrPoll();
-        
-        // Reset UI
-        const qrBox = $('waQrBox');
-        if (qrBox) {
-            qrBox.style.display = 'none';
-            qrBox.innerHTML = '';
-        }
-        
-        // Update status after delay
-        setTimeout(() => checkWaStatus(), 1000);
-    } catch(e) {
-        showToast('Disconnect failed: ' + e.message, 'error');
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-plug-circle-xmark"></i> Disconnect';
-        }
-    }
+        await apiCall('/whatsapp/stop-bridge', { method: 'POST' });
+        waConnected = false;
+        updateWaUI(false);
+        showToast('WhatsApp disconnected', 'success');
+        if (connectionCheckInterval) { clearInterval(connectionCheckInterval); connectionCheckInterval = null; }
+    } catch(e) { showToast('Failed to disconnect', 'error'); }
 }
 
-// DATA LOADING - MANUAL ONLY
+let dashboardLoading = false;
 async function loadDashboard() {
-    const stats = await apiCall('/stats');
-    if (stats) {
-        $('stat-total').textContent = stats.total || 0;
-        $('stat-active').textContent = stats.active || 0;
-        $('stat-ready').textContent = stats.ready || 0;
-        $('stat-waiting').textContent = stats.waiting_parts || 0;
-        $('stat-delivered').textContent = stats.delivered || 0;
-    }
-    const jobsData = await apiCall('/jobs');
-    if (jobsData) {
-        jobs = jobsData;
-        const recent = jobs.slice(0, 5);
-        $('recentJobsList').innerHTML = recent.length ? recent.map(j => `<div class="dash-job-row" onclick="viewJob('${j.id}')"><div><div class="dash-job-name">${esc(j.customer_name)}</div><div class="dash-job-meta">${esc(j.job_number)} · ${esc(j.vehicle_number)}</div></div><span class="badge b-${j.status}">${STATUS_LABELS[j.status]||j.status}</span></div>`).join('') : '<div class="dash-empty">No jobs yet</div>';
-        const ready = jobs.filter(j => j.status === 'ready');
-        $('readyCount').textContent = ready.length;
-        $('readyJobsList').innerHTML = ready.length ? ready.map(j => `<div class="dash-job-row" onclick="viewJob('${j.id}')"><div><div class="dash-job-name">${esc(j.customer_name)}</div><div class="dash-job-meta">${esc(j.vehicle_number)}</div></div></div>`).join('') : '<div class="dash-empty">No vehicles ready</div>';
-    }
-}
-
-async function loadJobs() {
-    const jobsData = await apiCall('/jobs');
-    if (jobsData) { jobs = jobsData; applyFilters(); }
-}
-
-function applyFilters() {
-    const q = ($('searchInput')?.value || '').toLowerCase();
-    filteredJobs = jobs.filter(j => {
-        const okFilter = activeFilter === 'all' || j.status === activeFilter;
-        const okSearch = !q || [j.customer_name, j.vehicle_number, j.job_number, j.customer_phone].some(v => v && v.toLowerCase().includes(q));
-        return okFilter && okSearch;
-    });
-    currentPage = 1;
-    renderTable();
-}
-
-function renderTable() {
-    const start = (currentPage - 1) * PER_PAGE;
-    const page = filteredJobs.slice(start, start + PER_PAGE);
-    $('jobsTableBody').innerHTML = page.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:60px">No jobs found</td></tr>' : page.map(j => `<tr><td><span class="job-num">${esc(j.job_number)}</span></td><td><div class="cust-name">${esc(j.customer_name)}</div><div class="cust-phone">${esc(j.customer_phone)}</div></td><td><span class="vehicle-tag">${esc(j.vehicle_number)}</span></td><td>${esc(j.complaint||'-')}</td><td><span class="badge b-${j.status}">${STATUS_LABELS[j.status]||j.status}</span></td><td>${fmtDate(j.estimated_delivery)}</td><td>${fmtMoney(j.final_cost||j.estimated_cost)}</td><td><button class="action-btn ab-view" onclick="viewJob('${j.id}')">View</button><button class="action-btn ab-update" onclick="openUpdateModal('${j.id}')">Update</button></td></tr>`).join('');
-    const total = filteredJobs.length;
-    const pages = Math.ceil(total / PER_PAGE);
-    $('paginationInfo').textContent = total > 0 ? `Showing ${start+1}–${Math.min(start+PER_PAGE, total)} of ${total}` : 'No results';
-    const btnsEl = $('paginationButtons');
-    btnsEl.innerHTML = '';
-    for (let i = 1; i <= pages; i++) { const b = document.createElement('button'); b.className = `page-btn ${i === currentPage ? 'active' : ''}`; b.textContent = i; b.onclick = () => { currentPage = i; renderTable(); }; btnsEl.appendChild(b); }
-}
-
-// JOB OPERATIONS
-async function createJob() {
-    const form = $('newJobForm');
-    const data = {};
-    new FormData(form).forEach((v,k) => { if (String(v).trim()) data[k] = String(v).trim(); });
-    if (!data.customer_name || !data.customer_phone || !data.vehicle_number || !data.complaint) { showToast('Please fill all required fields', 'error'); return; }
-    const btn = $('submitJobBtn');
-    btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
+    if (dashboardLoading) return;
+    dashboardLoading = true;
     try {
-        await apiCall('/jobs', { method:'POST', body:JSON.stringify(data) });
-        closeModal('newJobModal');
-        form.reset();
-        showToast('Job created!');
-        if (currentView === 'dashboard') { loadDashboard(); } else { loadJobs(); }
-    } catch(e) { showToast(e.message || 'Failed', 'error'); }
-    finally { btn.disabled = false; btn.innerHTML = 'Create Job'; }
+        const [stats, data] = await Promise.all([apiCall('/stats'), apiCall('/jobs')]);
+        if (stats) { $('stat-total').textContent = stats.total || 0; $('stat-active').textContent = stats.active || 0; $('stat-ready').textContent = stats.ready || 0; $('stat-waiting').textContent = stats.waiting_parts || 0; $('stat-delivered').textContent = stats.delivered || 0; }
+        if (data) {
+            jobs = data;
+            const recent = jobs.slice(0, 5);
+            $('recentJobsList').innerHTML = recent.length ? recent.map(j => `<div class="dash-job-row" onclick="viewJob('${j.id}')"><div><div class="dash-job-name">${esc(j.customer_name)}</div><div class="dash-job-meta">${esc(j.job_number)} · ${esc(j.vehicle_number)} · ${timeAgo(j.created_at)}</div></div><span class="badge b-${j.status}">${STATUS_LABELS[j.status] || j.status}</span></div>`).join('') : '<div class="dash-empty">No jobs yet</div>';
+            const ready = jobs.filter(j => j.status === 'ready');
+            $('readyCount').textContent = ready.length;
+            $('readyJobsList').innerHTML = ready.length ? ready.map(j => `<div class="dash-job-row" onclick="viewJob('${j.id}')"><div><div class="dash-job-name">${esc(j.customer_name)}</div><div class="dash-job-meta">${esc(j.vehicle_number)} · ${esc(j.job_number)}</div></div><span style="font-size:12px;color:var(--gold)">${fmtMoney(j.final_cost || j.estimated_cost)}</span></div>`).join('') : '<div class="dash-empty">No vehicles ready</div>';
+        }
+    } finally { dashboardLoading = false; }
 }
 
-async function viewJob(jobId) {
-    openModal('jobDetailModal');
-    $('jobDetailBody').innerHTML = '<div style="text-align:center;padding:48px"><div class="spinner"></div></div>';
-    try {
-        const j = await apiCall(`/jobs/${jobId}`);
-        $('jobDetailBody').innerHTML = `<div><div style="display:flex;justify-content:space-between"><div><div style="font-size:20px;font-weight:800;color:var(--gold)">${esc(j.job_number)}</div><div>Created ${fmtDate(j.created_at)}</div></div><span class="badge b-${j.status}">${STATUS_LABELS[j.status]}</span></div><hr><p><strong>Customer:</strong> ${esc(j.customer_name)}</p><p><strong>Phone:</strong> ${esc(j.customer_phone)}</p><p><strong>Vehicle:</strong> ${esc(j.vehicle_number)}</p><p><strong>Complaint:</strong> ${esc(j.complaint)}</p><p><strong>Status:</strong> ${j.status}</p><p><strong>Estimated Cost:</strong> ₹${j.estimated_cost || 0}</p><div style="margin-top:20px"><button class="btn btn-primary" onclick="closeModal('jobDetailModal');openUpdateModal('${j.id}')">Update Status</button></div></div>`;
-    } catch(e) { $('jobDetailBody').innerHTML = `<div style="color:var(--red);padding:20px">Error: ${esc(e.message)}</div>`; }
-}
+async function loadJobsList() { const data = await apiCall('/jobs'); if (data) { jobs = data; applyFilters(); } }
+function applyFilters() { const q = ($('searchInput')?.value || '').toLowerCase(); filteredJobs = jobs.filter(j => { const okF = activeFilter === 'all' || j.status === activeFilter; const okS = !q || [j.customer_name, j.vehicle_number, j.job_number, j.customer_phone].some(v => v && v.toLowerCase().includes(q)); return okF && okS; }); currentPage = 1; renderTable(); }
+function renderTable() { const start = (currentPage - 1) * PER_PAGE; const page = filteredJobs.slice(start, start + PER_PAGE); $('jobsTableBody').innerHTML = page.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:60px">No jobs found</td></tr>' : page.map(j => `<tr><td><span class="job-num">${esc(j.job_number)}</span></td><td><div class="cust-name">${esc(j.customer_name)}</div><div class="cust-phone">${esc(j.customer_phone)}</div></td><td><span class="vehicle-tag">${esc(j.vehicle_number)}</span><div class="vehicle-sub">${esc((j.vehicle_make || '') + ' ' + (j.vehicle_model || ''))}</div></td><td><span class="complaint-text">${esc(j.complaint || '—')}</span></td><td><span class="badge b-${j.status}">${STATUS_LABELS[j.status] || j.status}</span></td><td>${fmtDate(j.estimated_delivery)}</td><td>${fmtMoney(j.final_cost || j.estimated_cost)}</td><td><button class="action-btn ab-view" onclick="viewJob('${j.id}')">View</button><button class="action-btn ab-update" onclick="openUpdateModal('${j.id}')">Update</button></td></tr>`).join(''); const total = filteredJobs.length, pages = Math.ceil(total / PER_PAGE); $('paginationInfo').textContent = total > 0 ? `Showing ${start + 1}–${Math.min(start + PER_PAGE, total)} of ${total}` : 'No results'; const el = $('paginationButtons'); el.innerHTML = ''; for (let i = 1; i <= pages; i++) { const b = document.createElement('button'); b.className = `page-btn ${i === currentPage ? 'active' : ''}`; b.textContent = i; b.onclick = () => { currentPage = i; renderTable(); }; el.appendChild(b); } }
 
-function openUpdateModal(jobId) { currentJobId = jobId; openModal('updateStatusModal'); }
+async function createJob() { const form = $('newJobForm'); const data = {}; new FormData(form).forEach((v, k) => { if (String(v).trim()) data[k] = String(v).trim(); }); if (!data.customer_name || !data.customer_phone || !data.vehicle_number || !data.complaint) { showToast('Please fill all required fields', 'error'); return; } const btn = $('submitJobBtn'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>'; try { const res = await apiCall('/jobs', { method: 'POST', body: JSON.stringify(data) }); if (res && res.id) { closeModal('newJobModal'); form.reset(); showToast('Job created! WhatsApp notification sent 📱'); currentView === 'dashboard' ? loadDashboard() : loadJobsList(); } else { showToast('Failed to create job', 'error'); } } catch(e) { showToast(e.message || 'Failed', 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Create Job'; } }
 
-async function submitUpdate() {
-    const data = { status: $('statusSelect').value, message: $('updateMessage').value.trim(), diagnosis: $('updateDiagnosis').value.trim(), work_done: $('updateWorkDone').value.trim(), parts_used: $('updatePartsUsed').value.trim(), final_cost: parseFloat($('updateFinalCost').value) || null, estimated_delivery: $('updateEstDelivery').value || null };
-    if (!data.message) { showToast('Please enter a message', 'error'); return; }
-    const btn = $('submitUpdateBtn');
-    btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
-    try {
-        await apiCall(`/jobs/${currentJobId}/status`, { method:'PATCH', body:JSON.stringify(data) });
-        closeModal('updateStatusModal');
-        showToast('Status updated!');
-        if (currentView === 'dashboard') { loadDashboard(); } else { loadJobs(); }
-    } catch(e) { showToast(e.message || 'Update failed', 'error'); }
-    finally { btn.disabled = false; btn.innerHTML = 'Update & Notify'; }
-}
+async function viewJob(jobId) { openModal('jobDetailModal'); $('jobDetailBody').innerHTML = '<div style="text-align:center;padding:48px"><div class="spinner"></div></div>'; try { const j = await apiCall(`/jobs/${jobId}`); if (!j) { $('jobDetailBody').innerHTML = '<div style="color:var(--red);padding:20px">Job not found</div>'; return; } const si = STATUS_ORDER.indexOf(j.status); const progressHtml = `<div class="status-progress">${STATUS_ORDER.map((s, i) => { const done = i < si, cur = i === si; return `${i > 0 ? `<div class="sp-line ${done ? 'done' : ''}"></div>` : ''}<div class="sp-step"><div class="sp-dot ${done ? 'done' : cur ? 'current' : ''}">${done ? '✓' : STATUS_ICONS[s] || '·'}</div><div class="sp-label ${done || cur ? 'active' : ''}">${STATUS_LABELS[s]}</div></div>`; }).join('')}</div>`; $('jobDetailBody').innerHTML = `<div class="job-detail-grid"><div style="display:flex;justify-content:space-between"><div><div style="font-family:Syne;font-size:20px;font-weight:800;color:var(--gold)">${esc(j.job_number)}</div><div style="font-size:12px">Created ${fmtDate(j.created_at)}</div></div><span class="badge b-${j.status}" style="font-size:13px;padding:6px 14px">${STATUS_LABELS[j.status] || j.status}</span></div><div class="detail-section"><div class="detail-section-title">Status Progress</div>${progressHtml}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="detail-section"><div class="detail-section-title">Customer</div><div class="detail-row"><span class="detail-key">Name</span><span class="detail-val">${esc(j.customer_name)}</span></div><div class="detail-row"><span class="detail-key">Phone</span><span class="detail-val">${esc(j.customer_phone)}</span></div></div><div class="detail-section"><div class="detail-section-title">Vehicle</div><div class="detail-row"><span class="detail-key">Number</span><span class="detail-val"><strong>${esc(j.vehicle_number)}</strong></span></div><div class="detail-row"><span class="detail-key">Make</span><span class="detail-val">${esc(j.vehicle_make) || '—'}</span></div><div class="detail-row"><span class="detail-key">Model</span><span class="detail-val">${esc(j.vehicle_model) || '—'}</span></div></div></div><div class="detail-section"><div class="detail-section-title">Work Details</div><div class="detail-row"><span class="detail-key">Complaint</span><span class="detail-val">${esc(j.complaint) || '—'}</span></div><div class="detail-row"><span class="detail-key">Diagnosis</span><span class="detail-val">${esc(j.diagnosis) || '—'}</span></div><div class="detail-row"><span class="detail-key">Work Done</span><span class="detail-val">${esc(j.work_done) || '—'}</span></div><div class="detail-row"><span class="detail-key">Parts Used</span><span class="detail-val">${esc(j.parts_used) || '—'}</span></div><div class="detail-row"><span class="detail-key">Mechanic</span><span class="detail-val">${esc(j.assigned_mechanic) || '—'}</span></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="detail-section"><div class="detail-section-title">Financials</div><div class="detail-row"><span class="detail-key">Estimated</span><span class="detail-val">${fmtMoney(j.estimated_cost)}</span></div><div class="detail-row"><span class="detail-key">Final</span><span class="detail-val" style="color:var(--gold);font-weight:700">${fmtMoney(j.final_cost)}</span></div></div><div class="detail-section"><div class="detail-section-title">Timeline</div><div class="detail-row"><span class="detail-key">Est. Delivery</span><span class="detail-val">${fmtDate(j.estimated_delivery)}</span></div><div class="detail-row"><span class="detail-key">Last Updated</span><span class="detail-val">${timeAgo(j.updated_at)}</span></div></div></div>${j.notes ? `<div class="detail-section"><div class="detail-section-title">Notes</div><div>${esc(j.notes)}</div></div>` : ''}</div><div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-ghost" onclick="closeModal('jobDetailModal')">Close</button><button class="btn btn-primary" onclick="closeModal('jobDetailModal');openUpdateModal('${j.id}')"><i class="fas fa-rotate"></i> Update Status</button></div>`; } catch(e) { $('jobDetailBody').innerHTML = `<div style="color:var(--red);padding:20px">Error: ${esc(e.message)}</div>`; } }
 
-// NAVIGATION
-function switchToDashboard() { currentView = 'dashboard'; $('dashboardView').style.display = 'block'; $('jobsView').style.display = 'none'; $('pageTitle').textContent = 'Dashboard'; document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active')); document.querySelector('.nav-item[data-page="dashboard"]').classList.add('active'); loadDashboard(); closeSidebar(); }
-function switchToJobs() { currentView = 'jobs'; $('dashboardView').style.display = 'none'; $('jobsView').style.display = 'block'; $('pageTitle').textContent = 'All Jobs'; document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active')); document.querySelector('.nav-item[data-page="jobs"]').classList.add('active'); loadJobs(); closeSidebar(); }
+function openUpdateModal(jobId) { currentJobId = jobId; ['updateMessage','updateDiagnosis','updateWorkDone','updatePartsUsed','updateFinalCost','updateEstDelivery'].forEach(id => { $(id).value = ''; }); openModal('updateStatusModal'); }
+async function submitUpdate() { const data = { status: $('statusSelect').value, message: $('updateMessage').value.trim(), diagnosis: $('updateDiagnosis').value.trim(), work_done: $('updateWorkDone').value.trim(), parts_used: $('updatePartsUsed').value.trim(), final_cost: parseFloat($('updateFinalCost').value) || null, estimated_delivery: $('updateEstDelivery').value || null }; if (!data.message) { showToast('Please enter a message', 'error'); return; } const btn = $('submitUpdateBtn'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>'; try { const res = await apiCall(`/jobs/${currentJobId}/status`, { method: 'PATCH', body: JSON.stringify(data) }); if (res && res.success) { closeModal('updateStatusModal'); showToast('Status updated! WhatsApp sent 📱', 'success'); currentView === 'dashboard' ? loadDashboard() : loadJobsList(); } else { showToast('Update failed', 'error'); } } catch(e) { showToast(e.message || 'Update failed', 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fab fa-whatsapp"></i> Update & Notify'; } }
+
+function switchToDashboard() { currentView = 'dashboard'; $('dashboardView').style.display = 'block'; $('jobsView').style.display = 'none'; $('pageTitle').textContent = 'Dashboard'; document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active')); document.querySelector('[data-page="dashboard"]').classList.add('active'); loadDashboard(); closeSidebar(); }
+function switchToJobs() { currentView = 'jobs'; $('dashboardView').style.display = 'none'; $('jobsView').style.display = 'block'; $('pageTitle').textContent = 'All Jobs'; document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active')); document.querySelector('[data-page="jobs"]').classList.add('active'); loadJobsList(); closeSidebar(); }
 function setFilter(filter) { activeFilter = filter; document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter)); applyFilters(); }
 function closeSidebar() { if (window.innerWidth <= 768) { $('sidebar').classList.remove('open'); $('sidebarOverlay').classList.remove('visible'); } }
 
-// INIT - NO POLLING, NO REFRESHES
-document.addEventListener('DOMContentLoaded', async () => {
-    // License check once
-    const valid = await checkExistingLicense();
-    if (!valid) { $('licenseOverlay').style.display = 'flex'; $('appContainer').style.display = 'none'; return; }
-    
-    // Setup event listeners
-    $('activateLicenseBtn')?.addEventListener('click', activateLicense);
-    $('licenseKeyInput')?.addEventListener('keypress', e => { if (e.key === 'Enter') activateLicense(); });
+function wireEvents() {
     document.querySelectorAll('.nav-item[data-page]').forEach(nav => { nav.addEventListener('click', () => nav.dataset.page === 'dashboard' ? switchToDashboard() : switchToJobs()); });
-    $('newJobBtn')?.addEventListener('click', () => openModal('newJobModal'));
-    $('newJobNavBtn')?.addEventListener('click', () => openModal('newJobModal'));
-    $('submitJobBtn')?.addEventListener('click', createJob);
-    $('closeNewJobModal')?.addEventListener('click', () => closeModal('newJobModal'));
-    $('cancelNewJobBtn')?.addEventListener('click', () => closeModal('newJobModal'));
-    $('closeJobDetailModal')?.addEventListener('click', () => closeModal('jobDetailModal'));
-    $('submitUpdateBtn')?.addEventListener('click', submitUpdate);
-    $('closeUpdateModal')?.addEventListener('click', () => closeModal('updateStatusModal'));
-    $('cancelUpdateBtn')?.addEventListener('click', () => closeModal('updateStatusModal'));
-    $('connectWaBtn')?.addEventListener('click', connectWhatsApp);
-    $('refreshWaBtn')?.addEventListener('click', checkWaStatus);
-    $('disconnectWaBtn')?.addEventListener('click', disconnectWhatsApp);
-    $('searchInput')?.addEventListener('input', applyFilters);
-    document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.filter)));
-    $('manualRefreshBtn')?.addEventListener('click', () => { if (currentView === 'dashboard') loadDashboard(); else loadJobs(); showToast('Refreshed'); });
-    $('hamburgerBtn')?.addEventListener('click', () => { $('sidebar').classList.toggle('open'); $('sidebarOverlay').classList.toggle('visible'); });
-    $('sidebarOverlay')?.addEventListener('click', closeSidebar);
-    
-    // Initial load
-    checkWaStatus();
-    switchToDashboard();
+    $('newJobNavBtn').addEventListener('click', () => { closeSidebar(); openModal('newJobModal'); });
+    $('newJobBtn').addEventListener('click', () => openModal('newJobModal'));
+    $('manualRefreshBtn').addEventListener('click', () => { currentView === 'dashboard' ? loadDashboard() : loadJobsList(); showToast('Refreshed', 'info'); });
+    $('hamburgerBtn').addEventListener('click', () => { $('sidebar').classList.toggle('open'); $('sidebarOverlay').classList.toggle('visible'); });
+    $('sidebarOverlay').addEventListener('click', closeSidebar);
+    $('linkWhatsAppBtn').addEventListener('click', openWhatsAppQR);
+    $('disconnectWaBtn').addEventListener('click', disconnectWhatsApp);
+    $('submitJobBtn').addEventListener('click', createJob);
+    $('closeNewJobModal').addEventListener('click', () => closeModal('newJobModal'));
+    $('cancelNewJobBtn').addEventListener('click', () => closeModal('newJobModal'));
+    $('closeJobDetailModal').addEventListener('click', () => closeModal('jobDetailModal'));
+    $('submitUpdateBtn').addEventListener('click', submitUpdate);
+    $('closeUpdateModal').addEventListener('click', () => closeModal('updateStatusModal'));
+    $('cancelUpdateBtn').addEventListener('click', () => closeModal('updateStatusModal'));
+    $('searchInput').addEventListener('input', applyFilters);
+    document.querySelectorAll('.filter-btn').forEach(b => { b.addEventListener('click', () => setFilter(b.dataset.filter)); });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    $('activateLicenseBtn').addEventListener('click', activateLicense);
+    $('licenseKeyInput').addEventListener('keydown', e => { if (e.key === 'Enter') activateLicense(); });
+    const saved = localStorage.getItem('mechtrack_lic');
+    if (saved) {
+        try {
+            const lic = JSON.parse(saved);
+            const result = await apiCall('/api/license/verify', { method: 'POST', body: JSON.stringify({ license_key: lic.key }) });
+            if (result && result.valid) { launchApp(result.client_name); return; }
+            if (!result) { launchApp(lic.client || '—'); return; }
+            localStorage.removeItem('mechtrack_lic');
+        } catch(e) { localStorage.removeItem('mechtrack_lic'); }
+    }
+    $('licenseOverlay').style.display = 'flex';
+    $('appContainer').style.display = 'none';
 });
 
 window.viewJob = viewJob;

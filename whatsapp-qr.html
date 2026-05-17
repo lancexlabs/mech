@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Link WhatsApp — MechTrack</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f1115;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      background: #171a21;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 28px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: -1px;
+    }
+
+    .logo span {
+      color: #e8b84b;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,159,10,0.12);
+      color: #ffb340;
+      padding: 10px 16px;
+      border-radius: 100px;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+
+    .qr-box {
+      background: white;
+      border-radius: 22px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .qr-img {
+      width: 100%;
+      max-width: 230px;
+      aspect-ratio: 1/1;
+      object-fit: contain;
+      border-radius: 14px;
+    }
+
+    .qr-placeholder {
+      width: 230px;
+      height: 230px;
+      margin: auto;
+      border-radius: 14px;
+      background: #f3f3f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #666;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .steps {
+      text-align: left;
+      margin-top: 20px;
+      margin-bottom: 28px;
+    }
+
+    .step {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .step-number {
+      min-width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #e8b84b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .step-content h4 {
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      flex: 1;
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .primary-btn {
+      background: #e8b84b;
+      color: white;
+    }
+
+    .primary-btn:hover {
+      background: #e8b84b;
+    }
+
+    .secondary-btn {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .secondary-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 24px;
+      }
+
+      .buttons {
+        flex-direction: column;
+      }
+
+      .qr-placeholder {
+        width: 100%;
+        height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="logo">Mech<span>Track</span></div>
+
+    <p class="subtitle">
+      Connect your WhatsApp account to start sending automated customer updates.
+    </p>
+
+   <img src="public/whatsapp-qr.png" alt="" style="height: 250px;">
+   
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Open WhatsApp</h4>
+          <p>Open WhatsApp on your mobile device.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Linked Devices</h4>
+          <p>Go to Settings → Linked Devices → Link a Device.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Scan QR</h4>
+          <p>Scan the QR code shown above to connect instantly.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="buttons">
+     
+
+      <button class="secondary-btn" onclick="history.back()">
+        Back
+      </button>
+    </div>
+
+    <div class="footer">
+      MechTrack v2.0 <br>
+      Made with ❤️ by LanceX Labs
+    </div>
+
+  </div>
+
+
+
+</body>
+</html>

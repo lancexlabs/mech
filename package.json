@@ -1,20 +1,19 @@
 {
-  "name": "mech",
+  "name": "whatsapp-bridge",
   "version": "1.0.0",
-  "description": "WhatsApp-powered vehicle service tracker. Admin panel only — customers get all updates on WhatsApp automatically.",
+  "description": "WhatsApp bridge for MechTrack",
   "main": "whatsapp-bridge.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node whatsapp-bridge.js",
+    "dev": "nodemon whatsapp-bridge.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "express": "^5.2.1",
-    "puppeteer": "^25.0.2",
+    "express": "^4.22.2",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.34.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
