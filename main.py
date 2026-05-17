@@ -53,6 +53,10 @@ VALID_STATUSES = list(STATUS_LABELS.keys())
 jobs_db: Dict[str, Dict] = {}
 job_counter = 1
 
+# Store QR code temporarily (in production, use Redis)
+current_qr_code = None
+qr_timestamp = None
+
 # ============================================================
 # PERSISTENCE
 # ============================================================
@@ -267,7 +271,7 @@ async def whatsapp_status():
     """Check if WhatsApp bridge on Render is connected"""
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
-            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/health")
+            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/status")
             data = r.json()
             return {
                 "connected": data.get("ready", False),
@@ -276,7 +280,90 @@ async def whatsapp_status():
                 "bridge_url": WHATSAPP_BRIDGE,
             }
     except Exception as e:
-        return {"connected": False, "ready": False, "connecting": False, "error": str(e)}
+        return {
+            "connected": False, 
+            "ready": False, 
+            "connecting": False, 
+            "error": str(e),
+            "bridge_url": WHATSAPP_BRIDGE,
+        }
+
+@app.get("/whatsapp/connection-status")
+async def whatsapp_connection_status():
+    """Detailed connection status for QR page"""
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/status")
+            data = r.json()
+            return {
+                "connected": data.get("ready", False),
+                "ready": data.get("ready", False),
+                "connecting": data.get("connecting", False),
+                "can_send": data.get("ready", False),
+                "bridge_url": WHATSAPP_BRIDGE,
+                "timestamp": datetime.now().isoformat()
+            }
+    except Exception as e:
+        return {
+            "connected": False,
+            "ready": False,
+            "connecting": False,
+            "can_send": False,
+            "error": str(e),
+            "bridge_url": WHATSAPP_BRIDGE,
+            "timestamp": datetime.now().isoformat()
+        }
+
+@app.post("/whatsapp/push-qr")
+async def push_qr(request: Request):
+    """Receive QR code from bridge and store it"""
+    global current_qr_code, qr_timestamp
+    try:
+        body = await request.json()
+        qr_data = body.get("qr")
+        if qr_data:
+            current_qr_code = qr_data
+            qr_timestamp = datetime.now()
+            print(f"✅ QR code received at {qr_timestamp}")
+            return {"success": True, "message": "QR stored"}
+        return {"success": False, "message": "No QR data"}
+    except Exception as e:
+        print(f"⚠️ Error storing QR: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/whatsapp/qr")
+async def get_qr():
+    """Get current QR code for scanning"""
+    global current_qr_code, qr_timestamp
+    
+    # First check if bridge is already connected
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/status")
+            data = r.json()
+            if data.get("ready"):
+                return {"qr": None, "ready": True, "message": "Already connected"}
+    except:
+        pass
+    
+    # Return stored QR if available and not expired (5 minutes)
+    if current_qr_code and qr_timestamp:
+        age = (datetime.now() - qr_timestamp).seconds
+        if age < 300:  # QR expires in 5 minutes
+            return {"qr": current_qr_code, "ready": False, "age": age}
+    
+    # Try to fetch fresh QR from bridge
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/qr")
+            data = r.json()
+            if data.get("qr"):
+                current_qr_code = data.get("qr")
+                qr_timestamp = datetime.now()
+                return {"qr": current_qr_code, "ready": False}
+            return {"qr": None, "ready": data.get("ready", False), "connecting": data.get("connecting", False)}
+    except Exception as e:
+        return {"qr": None, "ready": False, "error": str(e)}
 
 @app.get("/whatsapp/bridge-url")
 async def get_bridge_url():
@@ -313,12 +400,42 @@ async def whatsapp_disconnect():
 @app.post("/whatsapp/reset")
 async def whatsapp_reset():
     """Reset bridge — clears session and generates new QR"""
+    global current_qr_code, qr_timestamp
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             r = await client.post(f"{WHATSAPP_BRIDGE.rstrip('/')}/reset")
+            # Clear stored QR
+            current_qr_code = None
+            qr_timestamp = None
             return {"success": r.status_code == 200, "message": "Bridge reset — new QR generating"}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+@app.post("/whatsapp/connect-on-demand")
+async def whatsapp_connect_on_demand():
+    """Force bridge to start and generate QR"""
+    try:
+        # First check if already connected
+        status = await whatsapp_status()
+        if status.get("ready"):
+            return {"success": True, "message": "Already connected", "ready": True}
+        
+        # Reset to get new QR
+        await whatsapp_reset()
+        
+        return {"success": True, "message": "Bridge started, QR will be available shortly"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/whatsapp/stop-bridge")
+async def whatsapp_stop_bridge():
+    """Stop the bridge completely"""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.post(f"{WHATSAPP_BRIDGE.rstrip('/')}/disconnect")
+            return {"success": r.status_code == 200}
+    except Exception:
+        return {"success": False}
 
 # ============================================================
 # MESSAGE TEMPLATES
