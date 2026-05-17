@@ -1,513 +1,772 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Link WhatsApp — MechTrack</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>WhatsApp Bridge — MechTrack QR Scanner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #080c14;
+            --surface: #0f1623;
+            --card: #141c2e;
+            --card-hover: #182035;
+            --border: #1e2a42;
+            --border-lit: #2e3f60;
+            --gold: #e8b84b;
+            --gold-dim: #c9962a;
+            --gold-glow: rgba(232, 184, 75, 0.15);
+            --teal: #26c6b0;
+            --blue: #3b82f6;
+            --red: #ef4444;
+            --green: #22c55e;
+            --amber: #f59e0b;
+            --text: #e8eaf0;
+            --text-2: #8492a8;
+            --text-3: #4a5570;
+            --radius: 20px;
+            --radius-sm: 12px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
 
-    body {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0f1115;
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-    .container {
-      width: 100%;
-      max-width: 420px;
-      background: #171a21;
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 28px;
-      padding: 32px;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
-    }
+        .container {
+            max-width: 550px;
+            width: 100%;
+            margin: 0 auto;
+        }
 
-    .logo {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      letter-spacing: -1px;
-    }
+        /* Status Card */
+        .status-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
 
-    .logo span { color: #e8b84b; }
+        .status-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            transition: all 0.3s ease;
+        }
 
-    .subtitle {
-      color: rgba(255,255,255,0.6);
-      font-size: 14px;
-      line-height: 1.6;
-      margin-bottom: 28px;
-    }
+        .status-icon.connecting {
+            background: rgba(245, 158, 11, 0.15);
+            border: 2px solid var(--amber);
+            color: var(--amber);
+            animation: pulse 1.5s infinite;
+        }
 
-    .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-radius: 100px;
-      font-size: 14px;
-      margin-bottom: 24px;
-      transition: all 0.3s;
-    }
+        .status-icon.scanning {
+            background: rgba(59, 130, 246, 0.15);
+            border: 2px solid var(--blue);
+            color: var(--blue);
+            animation: pulse 1.5s infinite;
+        }
 
-    .status.waiting  { background: rgba(255,159,10,0.12);   color: #ffb340; }
-    .status.loading  { background: rgba(100,100,255,0.12);  color: #8888ff; }
-    .status.connected{ background: rgba(40,200,100,0.12);   color: #28c864; }
-    .status.error    { background: rgba(255,60,60,0.12);    color: #ff4444; }
+        .status-icon.connected {
+            background: rgba(34, 197, 94, 0.15);
+            border: 2px solid var(--green);
+            color: var(--green);
+            animation: none;
+        }
 
-    .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-      animation: pulse 1.2s infinite;
-    }
+        .status-icon.error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid var(--red);
+            color: var(--red);
+            animation: none;
+        }
 
-    @keyframes pulse {
-      0%,100% { opacity:1; } 50% { opacity:.4; }
-    }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+        }
 
-    .qr-box {
-      background: white;
-      border-radius: 22px;
-      padding: 20px;
-      margin-bottom: 24px;
-      min-height: 270px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.4s;
-    }
+        .status-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
 
-    .qr-box.connected-box {
-      background: linear-gradient(135deg, #0d2e1a, #1a4d2e);
-      border: 2px solid #28c864;
-    }
+        .status-message {
+            color: var(--text-2);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
 
-    .qr-img {
-      width: 230px; height: 230px;
-      object-fit: contain;
-      border-radius: 14px;
-      display: none;
-    }
+        .status-detail {
+            background: var(--card);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .qr-placeholder {
-      width: 230px; height: 230px;
-      border-radius: 14px;
-      background: #f3f3f3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      color: #666;
-      gap: 10px;
-      font-size: 14px;
-      text-align: center;
-      padding: 20px;
-    }
+        .status-detail-label {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-    .qr-box.connected-box .qr-placeholder {
-      background: transparent;
-      color: white;
-    }
+        .status-detail-value {
+            font-family: monospace;
+            color: var(--gold);
+        }
 
-    .spinner {
-      width: 40px; height: 40px;
-      border: 4px solid #ddd;
-      border-top: 4px solid #e8b84b;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 10px;
-    }
+        /* QR Card */
+        .qr-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+        .qr-card.hidden {
+            display: none;
+        }
 
-    /* ✅ Connected animation */
-    .checkmark-circle {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      background: #28c864;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
 
-    @keyframes popIn {
-      0%   { transform: scale(0); opacity: 0; }
-      60%  { transform: scale(1.15); }
-      100% { transform: scale(1); opacity: 1; }
-    }
+        .qr-code {
+            width: 250px;
+            height: 250px;
+            display: block;
+            margin: 0 auto;
+        }
 
-    .checkmark-circle svg {
-      width: 40px; height: 40px;
-      stroke: white;
-      stroke-width: 3;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
+        .qr-placeholder {
+            width: 250px;
+            height: 250px;
+            background: var(--card);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--text-3);
+            font-size: 48px;
+        }
 
-    .checkmark-circle svg path {
-      stroke-dasharray: 50;
-      stroke-dashoffset: 50;
-      animation: drawCheck 0.4s 0.3s ease forwards;
-    }
+        .qr-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
 
-    @keyframes drawCheck {
-      to { stroke-dashoffset: 0; }
-    }
+        .qr-instruction {
+            color: var(--text-2);
+            font-size: 13px;
+            line-height: 1.5;
+        }
 
-    .connected-text {
-      color: #28c864;
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
+        .qr-instruction i {
+            color: var(--gold);
+            margin-right: 6px;
+        }
 
-    .connected-sub {
-      color: rgba(255,255,255,0.5);
-      font-size: 13px;
-    }
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s;
+            font-family: 'DM Sans', sans-serif;
+            width: 100%;
+            justify-content: center;
+        }
 
-    /* Banner that slides in on connect */
-    .connected-banner {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      background: rgba(40,200,100,0.1);
-      border: 1px solid rgba(40,200,100,0.3);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      text-align: left;
-      animation: slideDown 0.4s ease;
-    }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+            color: #0a0a0a;
+        }
 
-    .connected-banner.show { display: flex; }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232, 184, 75, 0.35);
+        }
 
-    @keyframes slideDown {
-      from { opacity:0; transform: translateY(-10px); }
-      to   { opacity:1; transform: translateY(0); }
-    }
+        .btn-secondary {
+            background: var(--card);
+            color: var(--text-2);
+            border: 1px solid var(--border);
+        }
 
-    .connected-banner-icon { font-size: 28px; }
+        .btn-secondary:hover:not(:disabled) {
+            border-color: var(--border-lit);
+            color: var(--text);
+        }
 
-    .connected-banner-text strong {
-      display: block;
-      color: #28c864;
-      font-size: 15px;
-      margin-bottom: 2px;
-    }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
 
-    .connected-banner-text span {
-      color: rgba(255,255,255,0.5);
-      font-size: 12px;
-    }
+        .btn-danger:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.2);
+        }
 
-    .steps {
-      text-align: left;
-      margin-top: 20px;
-      margin-bottom: 28px;
-    }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
-    .step {
-      display: flex;
-      gap: 14px;
-      margin-bottom: 18px;
-    }
+        /* Steps Indicator */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            position: relative;
+        }
 
-    .step-number {
-      min-width: 30px; height: 30px;
-      border-radius: 50%;
-      background: #e8b84b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: #000;
-    }
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
 
-    .step-number.done { background: #28c864; }
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
 
-    .step-content h4 { font-size: 15px; margin-bottom: 4px; }
-    .step-content p  {
-      font-size: 13px;
-      line-height: 1.5;
-      color: rgba(255,255,255,0.6);
-    }
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-weight: 700;
+            color: var(--text-3);
+            transition: all 0.3s ease;
+        }
 
-    .buttons { display: flex; gap: 12px; }
+        .step.active .step-circle {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: #0a0a0a;
+            transform: scale(1.1);
+        }
 
-    button {
-      flex: 1;
-      border: none;
-      border-radius: 14px;
-      padding: 14px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
+        .step.completed .step-circle {
+            background: var(--green);
+            border-color: var(--green);
+            color: white;
+        }
 
-    .primary-btn  { background: #e8b84b; color: #000; }
-    .primary-btn:hover { opacity: 0.9; }
-    .primary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .step-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-    .secondary-btn {
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.85);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .secondary-btn:hover { background: rgba(255,255,255,0.1); }
+        .step.active .step-label {
+            color: var(--gold);
+        }
 
-    .footer {
-      margin-top: 24px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-    }
+        .step.completed .step-label {
+            color: var(--green);
+        }
 
-    .refresh-info {
-      font-size: 12px;
-      color: rgba(255,255,255,0.35);
-      margin-top: 8px;
-    }
+        /* Logs */
+        .logs-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
 
-    @media (max-width: 500px) {
-      .container { padding: 24px; }
-      .buttons { flex-direction: column; }
-      .qr-img, .qr-placeholder { width: 100%; }
-    }
-  </style>
+        .logs-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logs-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .clear-logs {
+            background: none;
+            border: none;
+            color: var(--text-3);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .clear-logs:hover {
+            background: var(--card);
+            color: var(--text);
+        }
+
+        .logs-container {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .log-entry {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 6px;
+            font-family: monospace;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .log-time {
+            color: var(--text-3);
+            flex-shrink: 0;
+            font-size: 10px;
+        }
+
+        .log-message {
+            color: var(--text-2);
+            flex: 1;
+        }
+
+        .log-entry.success {
+            background: rgba(34, 197, 94, 0.05);
+            border-left: 2px solid var(--green);
+        }
+
+        .log-entry.error {
+            background: rgba(239, 68, 68, 0.05);
+            border-left: 2px solid var(--red);
+        }
+
+        .log-entry.info {
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 2px solid var(--blue);
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(232, 184, 75, 0.2);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            
+            .qr-code, .qr-placeholder {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .step-label {
+                font-size: 9px;
+            }
+        }
+    </style>
 </head>
 <body>
-
 <div class="container">
-
-  <div class="logo">Mech<span>Track</span></div>
-  <p class="subtitle">Connect your WhatsApp to send automated customer updates.</p>
-
-  <!-- ✅ Connected Banner (hidden until connected) -->
-  <div class="connected-banner" id="connectedBanner">
-    <div class="connected-banner-icon">📱</div>
-    <div class="connected-banner-text">
-      <strong>WhatsApp Connected!</strong>
-      <span>Messages will now be sent automatically to customers.</span>
+    <!-- Steps Indicator -->
+    <div class="steps">
+        <div class="step" id="stepInit">
+            <div class="step-circle">1</div>
+            <div class="step-label">Initialize</div>
+        </div>
+        <div class="step" id="stepQR">
+            <div class="step-circle">2</div>
+            <div class="step-label">Scan QR</div>
+        </div>
+        <div class="step" id="stepConnect">
+            <div class="step-circle">3</div>
+            <div class="step-label">Connect</div>
+        </div>
+        <div class="step" id="stepReady">
+            <div class="step-circle">4</div>
+            <div class="step-label">Ready</div>
+        </div>
     </div>
-  </div>
 
-  <!-- Status badge -->
-  <div class="status loading" id="statusBadge">
-    <div class="dot"></div>
-    <span id="statusText">Checking connection...</span>
-  </div>
-
-  <!-- QR Box -->
-  <div class="qr-box" id="qrBox">
-    <div class="qr-placeholder" id="qrPlaceholder">
-      <div class="spinner"></div>
-      <span>Fetching QR code...</span>
-      <small>Bridge starting up — wait ~30s</small>
+    <!-- Status Card -->
+    <div class="status-card">
+        <div class="status-icon" id="statusIcon">
+            <i class="fas fa-wifi"></i>
+        </div>
+        <div class="status-title" id="statusTitle">Initializing...</div>
+        <div class="status-message" id="statusMessage">Starting WhatsApp bridge connection</div>
+        <div class="status-detail">
+            <span class="status-detail-label">Bridge Status</span>
+            <span class="status-detail-value" id="bridgeStatus">Checking...</span>
+        </div>
     </div>
-    <img class="qr-img" id="qrImage" alt="WhatsApp QR Code" />
-  </div>
 
-  <div class="refresh-info" id="refreshInfo">Checking status every 5 seconds…</div>
-
-  <!-- Steps -->
-  <div class="steps" id="stepsSection">
-    <div class="step">
-      <div class="step-number" id="step1num">1</div>
-      <div class="step-content">
-        <h4>Open WhatsApp</h4>
-        <p>Open WhatsApp on your mobile device.</p>
-      </div>
+    <!-- QR Card -->
+    <div class="qr-card hidden" id="qrCard">
+        <div class="qr-container">
+            <img id="qrImage" class="qr-code" alt="QR Code">
+        </div>
+        <div class="qr-title">Scan with WhatsApp</div>
+        <div class="qr-instruction">
+            <i class="fab fa-whatsapp"></i>
+            Open WhatsApp → Settings → Linked Devices → Link a Device
+        </div>
     </div>
-    <div class="step">
-      <div class="step-number" id="step2num">2</div>
-      <div class="step-content">
-        <h4>Linked Devices</h4>
-        <p>Go to Settings → Linked Devices → Link a Device.</p>
-      </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <button class="btn btn-secondary" id="refreshBtn" style="flex: 1;">
+            <i class="fas fa-sync-alt"></i> Refresh Status
+        </button>
+        <button class="btn btn-danger" id="resetBtn" style="flex: 1;">
+            <i class="fas fa-trash-alt"></i> Reset Connection
+        </button>
     </div>
-    <div class="step">
-      <div class="step-number" id="step3num">3</div>
-      <div class="step-content">
-        <h4>Scan QR</h4>
-        <p>Scan the QR code above to connect instantly.</p>
-      </div>
+
+    <!-- Logs -->
+    <div class="logs-card">
+        <div class="logs-header">
+            <div class="logs-title">
+                <i class="fas fa-history" style="margin-right: 8px;"></i>
+                Connection Logs
+            </div>
+            <button class="clear-logs" id="clearLogsBtn">
+                <i class="fas fa-trash"></i> Clear
+            </button>
+        </div>
+        <div class="logs-container" id="logsContainer">
+            <div class="log-entry info">
+                <span class="log-time">--:--:--</span>
+                <span class="log-message">Initializing connection monitor...</span>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <div class="buttons">
-    <button class="primary-btn" id="refreshBtn" onclick="manualRefresh()">🔄 Refresh QR</button>
-    <button class="secondary-btn" onclick="history.back()">Back</button>
-  </div>
-
-  <div class="footer">MechTrack v2.0 &nbsp;|&nbsp; Made with ❤️ by LanceX Labs</div>
-
 </div>
 
 <script>
-  // ─── CONFIG ───────────────────────────────────────────────
-  // Render bridge — for QR image
-  const BRIDGE_URL  = "https://whatsapp-bridge-7n8j.onrender.com";
-  // Railway app — for real connected status
-  const RAILWAY_URL = "https://mech-production-30d8.up.railway.app";
-  // ──────────────────────────────────────────────────────────
+const API_BASE = 'https://mech-production-30d8.up.railway.app';
+// const API_BASE = 'http://localhost:4321'; // For local testing
 
-  const qrImage         = document.getElementById('qrImage');
-  const qrPlaceholder   = document.getElementById('qrPlaceholder');
-  const qrBox           = document.getElementById('qrBox');
-  const statusBadge     = document.getElementById('statusBadge');
-  const statusText      = document.getElementById('statusText');
-  const refreshInfo     = document.getElementById('refreshInfo');
-  const refreshBtn      = document.getElementById('refreshBtn');
-  const connectedBanner = document.getElementById('connectedBanner');
-  const step1num        = document.getElementById('step1num');
-  const step2num        = document.getElementById('step2num');
-  const step3num        = document.getElementById('step3num');
+let pollInterval = null;
+let logs = [];
 
-  let pollInterval  = null;
-  let isConnected   = false;
+function addLog(message, type = 'info') {
+    const time = new Date().toLocaleTimeString('en-IN');
+    logs.unshift({ time, message, type });
+    
+    // Keep only last 50 logs
+    if (logs.length > 50) logs.pop();
+    
+    renderLogs();
+}
 
-  // ─── STATUS HELPERS ────────────────────────────────────────
-
-  function setStatus(type, text) {
-    statusBadge.className = `status ${type}`;
-    statusText.textContent = text;
-  }
-
-  function showQR(base64) {
-    qrImage.src = base64;
-    qrImage.style.display = 'block';
-    qrPlaceholder.style.display = 'none';
-    qrBox.classList.remove('connected-box');
-    setStatus('waiting', 'Waiting for scan…');
-    refreshInfo.textContent = 'Auto-refreshes every 10 seconds';
-    refreshBtn.disabled = false;
-    refreshBtn.textContent = '🔄 Refresh QR';
-  }
-
-  function showLoading(msg = 'Fetching QR code…') {
-    qrImage.style.display = 'none';
-    qrPlaceholder.style.display = 'flex';
-    qrPlaceholder.innerHTML = `
-      <div class="spinner"></div>
-      <span>${msg}</span>
-      <small>Bridge starting up — wait ~30s</small>
-    `;
-    qrBox.classList.remove('connected-box');
-    setStatus('loading', 'Loading…');
-  }
-
-  function showConnected() {
-    // Stop polling
-    if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
-    isConnected = true;
-
-    // QR box → green success
-    qrImage.style.display = 'none';
-    qrPlaceholder.style.display = 'flex';
-    qrBox.classList.add('connected-box');
-    qrPlaceholder.style.background = 'transparent';
-    qrPlaceholder.style.color = 'white';
-    qrPlaceholder.innerHTML = `
-      <div class="checkmark-circle">
-        <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-      </div>
-      <div class="connected-text">WhatsApp Connected!</div>
-      <div class="connected-sub">You can close this page</div>
-    `;
-
-    // Status badge
-    setStatus('connected', 'Connected ✓');
-
-    // Banner
-    connectedBanner.classList.add('show');
-
-    // Steps all green
-    [step1num, step2num, step3num].forEach(el => el.classList.add('done'));
-
-    // Info + button
-    refreshInfo.textContent = 'WhatsApp is linked and ready to send messages.';
-    refreshBtn.disabled = true;
-    refreshBtn.textContent = '✅ Connected';
-  }
-
-  function showError(msg) {
-    qrImage.style.display = 'none';
-    qrPlaceholder.style.display = 'flex';
-    qrBox.classList.remove('connected-box');
-    qrPlaceholder.innerHTML = `
-      <div style="font-size:40px;margin-bottom:10px;">⚠️</div>
-      <span>${msg}</span>
-      <small>Check: ${BRIDGE_URL} is running</small>
-    `;
-    setStatus('error', 'Bridge not reachable');
-    refreshBtn.disabled = false;
-  }
-
-  // ─── MAIN POLLING LOGIC ────────────────────────────────────
-
-  async function checkStatus() {
-    if (isConnected) return;
-
-    try {
-      // 1️⃣  First check Railway — authoritative connected state
-      const railwayRes = await fetch(`${RAILWAY_URL}/whatsapp/status/simple`, { signal: AbortSignal.timeout(5000) });
-      if (railwayRes.ok) {
-        const railwayData = await railwayRes.json();
-        if (railwayData.ready === true) {
-          showConnected();
-          return;
-        }
-      }
-    } catch (_) { /* Railway unreachable — fall through to QR fetch */ }
-
-    // 2️⃣  Not connected — fetch QR from Render bridge
-    try {
-      const res  = await fetch(`${BRIDGE_URL}/qr`, { signal: AbortSignal.timeout(10000) });
-      const data = await res.json();
-
-      if (data.ready === true) {
-        // Bridge itself reports connected
-        showConnected();
+function renderLogs() {
+    const container = document.getElementById('logsContainer');
+    if (!container) return;
+    
+    if (logs.length === 0) {
+        container.innerHTML = '<div class="log-entry info"><span class="log-time">--:--:--</span><span class="log-message">No logs yet</span></div>';
         return;
-      }
-
-      if (data.qr) {
-        showQR(data.qr);
-      } else {
-        showLoading('QR not yet generated');
-      }
-    } catch (err) {
-      showError('Cannot reach bridge server');
-      console.error(err);
     }
-  }
+    
+    container.innerHTML = logs.map(log => `
+        <div class="log-entry ${log.type}">
+            <span class="log-time">${log.time}</span>
+            <span class="log-message">${escapeHtml(log.message)}</span>
+        </div>
+    `).join('');
+    
+    // Auto-scroll to top (newest logs)
+    container.scrollTop = 0;
+}
 
-  function manualRefresh() {
-    if (isConnected) return;
-    showLoading('Refreshing…');
-    checkStatus();
-  }
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-  // ─── INIT ──────────────────────────────────────────────────
+function updateSteps(currentStep) {
+    const steps = ['init', 'qr', 'connect', 'ready'];
+    steps.forEach((step, index) => {
+        const element = document.getElementById(`step${step.charAt(0).toUpperCase() + step.slice(1)}`);
+        if (!element) return;
+        
+        element.classList.remove('active', 'completed');
+        
+        if (index < steps.indexOf(currentStep)) {
+            element.classList.add('completed');
+        } else if (index === steps.indexOf(currentStep)) {
+            element.classList.add('active');
+        }
+    });
+}
 
-  checkStatus();
+async function checkConnectionStatus() {
+    try {
+        addLog('Checking connection status...', 'info');
+        
+        // Try to get status from main API
+        const response = await fetch(`${API_BASE}/whatsapp/status`);
+        const data = await response.json();
+        
+        console.log('Status response:', data);
+        
+        const isConnected = data.ready === true;
+        const isConnecting = data.connecting === true;
+        const bridgeUrl = data.bridge_url || 'Unknown';
+        
+        document.getElementById('bridgeStatus').textContent = isConnected ? 'CONNECTED' : (isConnecting ? 'CONNECTING...' : 'DISCONNECTED');
+        
+        const icon = document.getElementById('statusIcon');
+        const title = document.getElementById('statusTitle');
+        const message = document.getElementById('statusMessage');
+        
+        if (isConnected) {
+            icon.className = 'status-icon connected';
+            icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            title.textContent = 'Connected!';
+            message.textContent = 'WhatsApp is ready to send and receive messages';
+            updateSteps('ready');
+            
+            // Hide QR card if connected
+            document.getElementById('qrCard').classList.add('hidden');
+            
+            addLog('✅ WhatsApp connected successfully! Bridge is ready.', 'success');
+            
+            // Stop polling if connected
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+        } else if (isConnecting) {
+            icon.className = 'status-icon connecting';
+            icon.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+            title.textContent = 'Connecting...';
+            message.textContent = 'Setting up WhatsApp bridge';
+            updateSteps('init');
+            addLog('⏳ Bridge is initializing...', 'info');
+        } else {
+            icon.className = 'status-icon scanning';
+            icon.innerHTML = '<i class="fas fa-qrcode"></i>';
+            title.textContent = 'Ready to Scan';
+            message.textContent = 'Generate QR code to connect your WhatsApp';
+            updateSteps('qr');
+            
+            // Show QR card and fetch QR
+            document.getElementById('qrCard').classList.remove('hidden');
+            await fetchQRCode();
+        }
+        
+        return isConnected;
+    } catch (error) {
+        console.error('Status check error:', error);
+        addLog(`❌ Failed to check status: ${error.message}`, 'error');
+        
+        document.getElementById('statusIcon').className = 'status-icon error';
+        document.getElementById('statusIcon').innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+        document.getElementById('statusTitle').textContent = 'Connection Error';
+        document.getElementById('statusMessage').textContent = 'Cannot reach bridge service';
+        document.getElementById('bridgeStatus').textContent = 'OFFLINE';
+        
+        return false;
+    }
+}
 
-  // Poll every 5 seconds — catches connection the moment it happens
-  pollInterval = setInterval(checkStatus, 5000);
+async function fetchQRCode() {
+    try {
+        addLog('Fetching QR code from bridge...', 'info');
+        
+        const response = await fetch(`${API_BASE}/whatsapp/status`);
+        const data = await response.json();
+        
+        // If the bridge has a QR endpoint, try that
+        if (data.bridge_url) {
+            try {
+                const qrResponse = await fetch(`${data.bridge_url}/qr`);
+                const qrData = await qrResponse.json();
+                
+                if (qrData.qr && !qrData.ready) {
+                    const qrImage = document.getElementById('qrImage');
+                    qrImage.src = qrData.qr;
+                    addLog('📱 QR code loaded. Scan with WhatsApp mobile app.', 'success');
+                } else if (qrData.ready) {
+                    addLog('✅ Bridge is already ready!', 'success');
+                    await checkConnectionStatus();
+                } else {
+                    addLog('⚠️ No QR code available yet. Waiting for bridge...', 'info');
+                }
+            } catch (err) {
+                addLog(`⚠️ Cannot fetch QR: ${err.message}`, 'error');
+            }
+        }
+    } catch (error) {
+        addLog(`❌ QR fetch error: ${error.message}`, 'error');
+    }
+}
+
+async function resetConnection() {
+    if (!confirm('⚠️ This will reset the WhatsApp connection. You will need to scan QR again. Continue?')) {
+        return;
+    }
+    
+    addLog('🔄 Resetting WhatsApp connection...', 'info');
+    
+    try {
+        // Reset bridge
+        const resetResponse = await fetch(`${API_BASE}/whatsapp/reset`, {
+            method: 'POST'
+        });
+        
+        if (resetResponse.ok) {
+            addLog('✅ Bridge reset initiated', 'success');
+            
+            // Update UI
+            document.getElementById('statusIcon').className = 'status-icon connecting';
+            document.getElementById('statusIcon').innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+            document.getElementById('statusTitle').textContent = 'Resetting...';
+            document.getElementById('statusMessage').textContent = 'Bridge is restarting';
+            updateSteps('init');
+            
+            // Clear QR display
+            document.getElementById('qrCard').classList.add('hidden');
+            
+            // Re-check status after reset
+            setTimeout(() => {
+                checkConnectionStatus();
+            }, 3000);
+        } else {
+            addLog('❌ Failed to reset bridge', 'error');
+        }
+    } catch (error) {
+        addLog(`❌ Reset error: ${error.message}`, 'error');
+    }
+}
+
+function startPolling() {
+    if (pollInterval) clearInterval(pollInterval);
+    
+    // Initial check
+    checkConnectionStatus();
+    
+    // Poll every 5 seconds
+    pollInterval = setInterval(() => {
+        checkConnectionStatus();
+    }, 5000);
+}
+
+function stopPolling() {
+    if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+    }
+}
+
+// Event listeners
+document.getElementById('refreshBtn').addEventListener('click', () => {
+    addLog('🔄 Manual refresh triggered', 'info');
+    checkConnectionStatus();
+});
+
+document.getElementById('resetBtn').addEventListener('click', resetConnection);
+
+document.getElementById('clearLogsBtn').addEventListener('click', () => {
+    logs = [];
+    addLog('Logs cleared', 'info');
+});
+
+// Initialize
+addLog('🚀 WhatsApp Bridge Monitor Started', 'success');
+addLog(`API Endpoint: ${API_BASE}`, 'info');
+startPolling();
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    stopPolling();
+});
 </script>
-
 </body>
 </html>
