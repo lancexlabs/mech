@@ -50,7 +50,7 @@ app.add_middleware(
 # ============================================================
 
 SHOP_NAME        = os.getenv("SHOP_NAME", "MechTrack Workshop")
-WHATSAPP_BRIDGE  = os.getenv("WHATSAPP_BRIDGE_URL", "http://localhost:4322")
+WHATSAPP_BRIDGE  = os.getenv("WHATSAPP_BRIDGE_URL", "https://whatsapp-bridge-7n8j.onrender.com")
 WHATSAPP_ENABLED = os.getenv("WHATSAPP_ENABLED", "true").lower() == "true"
 LICENSE_FILE     = "licenses.json"
 JOBS_FILE        = "jobs.json"
