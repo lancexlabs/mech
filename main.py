@@ -4,19 +4,28 @@ WhatsApp Bridge runs separately on Render
 """
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
 from typing import Optional, Dict
-import uuid, hashlib, random, string, json, os, asyncio, httpx, re
+import uuid
+import hashlib
+import random
+import string
+import json
+import os
+import asyncio
+import httpx
+import re
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import logging
 
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 load_dotenv()
-current_qr_code = None
-qr_timestamp = None
-qr_expiry = None
 
 # ============================================================
 # APP INIT
@@ -24,6 +33,7 @@ qr_expiry = None
 
 app = FastAPI(title="MechTrack API", version="2.0.0")
 
+# CORS - Allow all for testing
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,25 +46,31 @@ app.add_middleware(
 # CONFIGURATION
 # ============================================================
 
-SHOP_NAME        = os.getenv("SHOP_NAME", "MechTrack Workshop")
-WHATSAPP_BRIDGE  = os.getenv("WHATSAPP_BRIDGE_URL", "https://whatsapp-bridge-7n8j.onrender.com")
+SHOP_NAME = os.getenv("SHOP_NAME", "MechTrack Workshop")
+WHATSAPP_BRIDGE = os.getenv("WHATSAPP_BRIDGE_URL", "https://whatsapp-bridge-7n8j.onrender.com")
 WHATSAPP_ENABLED = os.getenv("WHATSAPP_ENABLED", "true").lower() == "true"
-LICENSE_FILE     = "licenses.json"
-JOBS_FILE        = "jobs.json"
+LICENSE_FILE = "licenses.json"
+JOBS_FILE = "jobs.json"
 
 STATUS_LABELS = {
-    "received":      "✅ Vehicle Received",
-    "diagnosing":    "🔍 Under Diagnosis",
+    "received": "✅ Vehicle Received",
+    "diagnosing": "🔍 Under Diagnosis",
     "waiting_parts": "⏳ Waiting for Parts",
-    "in_progress":   "🔧 Work In Progress",
+    "in_progress": "🔧 Work In Progress",
     "quality_check": "🔎 Quality Check",
-    "ready":         "🎉 Ready for Pickup",
-    "delivered":     "✔️ Delivered",
+    "ready": "🎉 Ready for Pickup",
+    "delivered": "✔️ Delivered",
 }
 VALID_STATUSES = list(STATUS_LABELS.keys())
 
+# In-memory storage
 jobs_db: Dict[str, Dict] = {}
 job_counter = 1
+
+# WhatsApp QR storage
+current_qr_code = None
+qr_timestamp = None
+qr_expiry = None
 
 # ============================================================
 # PERSISTENCE
@@ -68,9 +84,9 @@ def load_jobs_from_disk():
                 data = json.load(f)
                 jobs_db = data.get("jobs", {})
                 job_counter = data.get("job_counter", 1)
-                print(f"✅ Loaded {len(jobs_db)} jobs from disk")
+                logger.info(f"Loaded {len(jobs_db)} jobs from disk")
         except Exception as e:
-            print(f"⚠️ Error loading jobs: {e}")
+            logger.error(f"Error loading jobs: {e}")
             jobs_db = {}
             job_counter = 1
     else:
@@ -86,185 +102,11 @@ def save_jobs_to_disk():
                 "last_saved": datetime.now().isoformat()
             }, f, indent=2)
     except Exception as e:
-        print(f"⚠️ Error saving jobs: {e}")
+        logger.error(f"Error saving jobs: {e}")
 
+# Load existing data
 load_jobs_from_disk()
 
-
-@app.post("/whatsapp/push-qr")
-async def push_qr(request: Request):
-    global current_qr_code, qr_timestamp, qr_expiry
-    try:
-        body = await request.json()
-        qr_data = body.get("qr")
-        if qr_data:
-            current_qr_code = qr_data
-            qr_timestamp = datetime.now()
-            qr_expiry = datetime.now() + timedelta(minutes=5)
-            print(f"✅✅✅ QR RECEIVED! Time: {qr_timestamp}")
-            return {"success": True, "timestamp": qr_timestamp.isoformat()}
-        return {"success": False}
-    except Exception as e:
-        print(f"Error: {e}")
-        return {"success": False}
-
-@app.get("/whatsapp/qr-display")
-async def display_qr():
-    """Simple HTML page to display QR"""
-    global current_qr_code, qr_timestamp, qr_expiry
-    
-    if not current_qr_code:
-        return """
-        <html>
-        <body style="background:#080c14;color:white;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh">
-        <div style="text-align:center">
-            <h2>⏳ Waiting for QR Code...</h2>
-            <p>WhatsApp bridge is starting. Please wait 30 seconds.</p>
-            <button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;background:#e8b84b;border:none;border-radius:8px;cursor:pointer">Refresh</button>
-        </div>
-        </body>
-        </html>
-        """
-    
-    # Check if QR expired
-    if qr_expiry and datetime.now() > qr_expiry:
-        return """
-        <html>
-        <body style="background:#080c14;color:white;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh">
-        <div style="text-align:center">
-            <h2>⏰ QR Code Expired</h2>
-            <p>Please refresh to get a new QR code.</p>
-            <button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;background:#e8b84b;border:none;border-radius:8px;cursor:pointer">Get New QR</button>
-        </div>
-        </body>
-        </html>
-        """
-    
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WhatsApp QR - MechTrack</title>
-        <style>
-            body {{
-                margin: 0;
-                padding: 20px;
-                background: #080c14;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-            }}
-            .container {{
-                background: #0f1623;
-                border-radius: 20px;
-                padding: 40px;
-                text-align: center;
-                border: 1px solid #1e2a42;
-                max-width: 500px;
-            }}
-            h1 {{
-                color: #e8b84b;
-                margin-bottom: 10px;
-            }}
-            .qr-container {{
-                background: white;
-                padding: 20px;
-                border-radius: 16px;
-                display: inline-block;
-                margin: 20px 0;
-            }}
-            img {{
-                width: 250px;
-                height: 250px;
-            }}
-            .steps {{
-                text-align: left;
-                margin: 20px 0;
-                padding: 0 20px;
-            }}
-            .steps li {{
-                margin: 10px 0;
-                color: #8492a8;
-            }}
-            button {{
-                background: #e8b84b;
-                color: #0a0a0a;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                margin-top: 20px;
-            }}
-            button:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(232,184,75,0.3);
-            }}
-            .status {{
-                margin-top: 20px;
-                padding: 10px;
-                background: #141c2e;
-                border-radius: 8px;
-                color: #e8eaf0;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔧 MechTrack WhatsApp</h1>
-            <p>Scan to connect your workshop number</p>
-            <div class="qr-container">
-                <img src="{current_qr_code}" alt="WhatsApp QR Code">
-            </div>
-            <div class="steps">
-                <strong>📱 Steps to connect:</strong>
-                <ul>
-                    <li>1. Open WhatsApp on your phone</li>
-                    <li>2. Tap Menu (⋮) or Settings</li>
-                    <li>3. Select "Linked Devices"</li>
-                    <li>4. Tap "Link a Device"</li>
-                    <li>5. Scan this QR code</li>
-                </ul>
-            </div>
-            <div class="status">
-                ⏱️ QR expires in: <span id="timer">5:00</span>
-                <br>
-                <small>🔄 <a href="#" onclick="location.reload()" style="color:#e8b84b">Refresh page</a> if QR expired</small>
-            </div>
-            <button onclick="location.reload()">⟳ Refresh QR</button>
-        </div>
-        <script>
-            let expiryTime = {int(qr_expiry.timestamp()) if qr_expiry else 0};
-            function updateTimer() {{
-                const now = Math.floor(Date.now() / 1000);
-                const diff = expiryTime - now;
-                if (diff <= 0) {{
-                    document.getElementById('timer').innerHTML = 'Expired! Refresh page';
-                    document.getElementById('timer').style.color = '#ef4444';
-                }} else {{
-                    const mins = Math.floor(diff / 60);
-                    const secs = diff % 60;
-                    document.getElementById('timer').innerHTML = `${{mins}}:${{secs.toString().padStart(2,'0')}}`;
-                }}
-            }}
-            setInterval(updateTimer, 1000);
-            updateTimer();
-        </script>
-    </body>
-    </html>
-    """'''
-
-@app.get("/whatsapp/qr")
-async def get_qr_json():
-    """JSON endpoint for QR"""
-    global current_qr_code
-    if current_qr_code:
-        return {"qr": current_qr_code, "ready": False}
-    return {"qr": None, "ready": False}
 # ============================================================
 # LICENSE HELPERS
 # ============================================================
@@ -281,9 +123,6 @@ def load_licenses() -> Dict:
 def save_licenses(licenses: Dict):
     with open(LICENSE_FILE, "w") as f:
         json.dump(licenses, f, indent=2)
-
-def hash_key(key: str) -> str:
-    return hashlib.sha256(key.encode()).hexdigest()
 
 def generate_license_key() -> str:
     chars = string.ascii_uppercase + string.digits
@@ -323,7 +162,7 @@ async def generate_license(data: LicenseGenerate):
         price = LICENSE_PRICES.get(data.duration_months, 999)
         licenses[key] = {
             "license_key": key,
-            "license_key_hash": hash_key(key),
+            "license_key_hash": hashlib.sha256(key.encode()).hexdigest(),
             "client_name": data.client_name,
             "client_email": data.client_email,
             "issued_date": issued.isoformat(),
@@ -393,7 +232,7 @@ async def license_stats():
 
 async def send_whatsapp(phone: str, message: str) -> bool:
     if not WHATSAPP_ENABLED:
-        print("⚠️ WhatsApp disabled")
+        logger.info("WhatsApp disabled")
         return False
     try:
         clean = re.sub(r"\D", "", phone)
@@ -402,36 +241,31 @@ async def send_whatsapp(phone: str, message: str) -> bool:
         elif len(clean) == 11 and clean.startswith("0"):
             clean = "91" + clean[1:]
         if len(clean) != 12 or not clean.startswith("91"):
-            print(f"⚠️ Invalid phone: {phone} → {clean}")
+            logger.warning(f"Invalid phone: {phone} -> {clean}")
             return False
 
         bridge = WHATSAPP_BRIDGE.rstrip("/")
-        print(f"📱 Sending to {clean} via {bridge}")
+        logger.info(f"Sending to {clean} via {bridge}")
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            # Health check first
+        async with httpx.AsyncClient(timeout=30.0) as client:
             try:
                 h = await client.get(f"{bridge}/health", timeout=10.0)
                 health = h.json()
-                print(f"🔍 Bridge health: {health}")
                 if not health.get("ready"):
-                    print("⚠️ Bridge not ready — message not sent")
+                    logger.warning("Bridge not ready")
                     return False
             except Exception as e:
-                print(f"⚠️ Health check failed: {e}")
+                logger.warning(f"Health check failed: {e}")
                 return False
 
-            # Send message
             r = await client.post(
                 f"{bridge}/send-message",
                 json={"phone": clean, "message": message},
-                timeout=60.0
+                timeout=30.0
             )
-            print(f"📤 Result: {r.status_code} — {r.text}")
             return r.status_code == 200
-
     except Exception as e:
-        print(f"⚠️ send_whatsapp error: {e}")
+        logger.error(f"send_whatsapp error: {e}")
         return False
 
 # ============================================================
@@ -439,30 +273,107 @@ async def send_whatsapp(phone: str, message: str) -> bool:
 # ============================================================
 
 @app.get("/whatsapp/status")
-@app.get("/whatsapp/status/simple")
-@app.get("/whatsapp-status")
 async def whatsapp_status():
-    """Check if WhatsApp bridge on Render is connected"""
+    """Check WhatsApp bridge status"""
     try:
-        async with httpx.AsyncClient(timeout=8.0) as client:
+        async with httpx.AsyncClient(timeout=5.0) as client:
             r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/health")
             data = r.json()
             return {
-                "connected": data.get("ready", False),
                 "ready": data.get("ready", False),
                 "connecting": data.get("connecting", False),
                 "bridge_url": WHATSAPP_BRIDGE,
+                "qr_available": current_qr_code is not None
             }
     except Exception as e:
-        return {"connected": False, "ready": False, "connecting": False, "error": str(e)}
+        return {
+            "ready": False,
+            "connecting": False,
+            "error": str(e),
+            "bridge_url": WHATSAPP_BRIDGE,
+            "qr_available": current_qr_code is not None
+        }
 
-@app.get("/whatsapp/bridge-url")
-async def get_bridge_url():
-    return {"bridge_url": WHATSAPP_BRIDGE, "whatsapp_enabled": WHATSAPP_ENABLED}
+@app.post("/whatsapp/push-qr")
+async def push_qr(request: Request):
+    """Receive QR from Render bridge"""
+    global current_qr_code, qr_timestamp, qr_expiry
+    try:
+        body = await request.json()
+        qr_data = body.get("qr")
+        if qr_data:
+            current_qr_code = qr_data
+            qr_timestamp = datetime.now()
+            qr_expiry = datetime.now() + timedelta(minutes=5)
+            logger.info(f"QR received at {qr_timestamp}")
+            return {"success": True, "timestamp": qr_timestamp.isoformat()}
+        return {"success": False, "message": "No QR data"}
+    except Exception as e:
+        logger.error(f"QR push error: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/whatsapp/qr")
+async def get_qr_json():
+    """JSON endpoint for QR"""
+    global current_qr_code, qr_expiry
+    
+    if not current_qr_code:
+        return {"qr": None, "ready": False, "message": "No QR available"}
+    
+    if qr_expiry and datetime.now() > qr_expiry:
+        return {"qr": None, "ready": False, "expired": True, "message": "QR expired"}
+    
+    return {
+        "qr": current_qr_code,
+        "ready": False,
+        "expires_at": qr_expiry.isoformat() if qr_expiry else None,
+        "age_seconds": (datetime.now() - qr_timestamp).seconds if qr_timestamp else 0
+    }
+
+@app.get("/whatsapp/qr-info")
+async def get_qr_info():
+    """Get QR metadata without the actual QR code"""
+    global current_qr_code, qr_timestamp, qr_expiry
+    
+    return {
+        "available": current_qr_code is not None,
+        "timestamp": qr_timestamp.isoformat() if qr_timestamp else None,
+        "expires_at": qr_expiry.isoformat() if qr_expiry else None,
+        "expired": qr_expiry and datetime.now() > qr_expiry if qr_expiry else False,
+        "age_seconds": (datetime.now() - qr_timestamp).seconds if qr_timestamp else 0,
+        "time_to_live": (qr_expiry - datetime.now()).seconds if qr_expiry and datetime.now() < qr_expiry else 0
+    }
+
+@app.post("/whatsapp/bridge-ready")
+async def bridge_ready(request: Request):
+    """Receive ready status from bridge"""
+    try:
+        body = await request.json()
+        logger.info(f"Bridge ready: {body}")
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Bridge ready error: {e}")
+        return {"success": False}
+
+@app.post("/whatsapp/reset")
+async def whatsapp_reset():
+    """Reset bridge connection"""
+    global current_qr_code, qr_timestamp, qr_expiry
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            await client.post(f"{WHATSAPP_BRIDGE.rstrip('/')}/reset")
+            current_qr_code = None
+            qr_timestamp = None
+            qr_expiry = None
+            logger.info("QR storage cleared")
+            return {"success": True}
+    except Exception as e:
+        logger.error(f"Reset error: {e}")
+        return {"success": False, "error": str(e)}
 
 @app.post("/whatsapp/test-send")
 async def test_send(request: Request):
-    """Test sending a WhatsApp message"""
+    """Test sending message"""
     try:
         body = await request.json()
         phone = body.get("phone", "")
@@ -474,10 +385,14 @@ async def test_send(request: Request):
             "success": result,
             "phone": phone,
             "bridge_url": WHATSAPP_BRIDGE,
-            "message": "Sent!" if result else "Failed — check Railway logs"
+            "message": "Sent!" if result else "Failed"
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+@app.get("/whatsapp/bridge-url")
+async def get_bridge_url():
+    return {"bridge_url": WHATSAPP_BRIDGE, "whatsapp_enabled": WHATSAPP_ENABLED}
 
 @app.post("/whatsapp/disconnect")
 async def whatsapp_disconnect():
@@ -488,64 +403,44 @@ async def whatsapp_disconnect():
     except Exception:
         return {"success": False}
 
-@app.post("/whatsapp/reset")
-async def whatsapp_reset():
-    """Reset bridge — clears session and generates new QR"""
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            r = await client.post(f"{WHATSAPP_BRIDGE.rstrip('/')}/reset")
-            return {"success": r.status_code == 200, "message": "Bridge reset — new QR generating"}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
 # ============================================================
 # MESSAGE TEMPLATES
 # ============================================================
 
 def build_message(job: Dict, msg_type: str, update_msg: str = "") -> str:
-    cost = f"₹{job['estimated_cost']:,.0f}" if job.get("estimated_cost") else "To be confirmed"
-    delivery = job.get("estimated_delivery") or "To be confirmed"
-    vehicle = f"{job.get('vehicle_make') or ''} {job.get('vehicle_model') or ''}".strip()
+    cost = f"₹{job['estimated_cost']:,.0f}" if job.get("estimated_cost") else "TBC"
+    delivery = job.get("estimated_delivery") or "TBC"
+    vehicle = f"{job.get('vehicle_make', '')} {job.get('vehicle_model', '')}".strip()
 
     if msg_type == "intake":
         return (
             f"🔧 *{SHOP_NAME}*\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
             f"Hello *{job['customer_name']}*!\n\n"
-            f"Your vehicle has been received at our workshop.\n\n"
-            f"📋 *Job Details*\n"
-            f"• Job No: *{job['job_number']}*\n"
-            f"• Vehicle: {vehicle or job['vehicle_number']}\n"
-            f"• Reg No: {job['vehicle_number']}\n"
-            f"• Issue: {job['complaint']}\n\n"
-            f"💰 Estimated Cost: {cost}\n"
-            f"📅 Expected Delivery: {delivery}\n\n"
+            f"Vehicle received: {vehicle or job['vehicle_number']}\n"
+            f"Job #{job['job_number']}\n"
+            f"Complaint: {job['complaint']}\n"
+            f"Estimate: {cost}\n"
+            f"Delivery: {delivery}\n\n"
             f"We'll keep you updated! 🙏"
         )
     elif msg_type == "ready":
-        final = f"₹{job['final_cost']:,.0f}" if job.get("final_cost") else "Please contact us"
+        final = f"₹{job['final_cost']:,.0f}" if job.get("final_cost") else cost
         return (
-            f"🎉 *{SHOP_NAME}* — Ready for Pickup!\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🎉 *{SHOP_NAME}*\n"
             f"Hello *{job['customer_name']}*!\n\n"
-            f"Your vehicle is *ready for pickup*! 🚗✨\n\n"
-            f"📋 Job: *{job['job_number']}*\n"
-            f"🚗 Vehicle: {job['vehicle_number']}\n"
-            f"💰 Total Amount: {final}\n\n"
-            f"📍 Please visit our workshop to collect your vehicle.\n\n"
-            f"Thank you for your patience! 🙏"
+            f"Your vehicle *{job['vehicle_number']}* is READY for pickup! 🚗\n"
+            f"Total: {final}\n\n"
+            f"Please visit our workshop. Thank you! 🙏"
         )
     else:
-        label = STATUS_LABELS.get(job.get("status", ""), job.get("status", "Updated"))
+        label = STATUS_LABELS.get(job.get("status", ""), "Updated")
         return (
-            f"🔧 *{SHOP_NAME}* — Status Update\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔧 *{SHOP_NAME}*\n"
             f"Hello *{job['customer_name']}*!\n\n"
-            f"📋 Job: *{job['job_number']}*\n"
-            f"🚗 Vehicle: {job['vehicle_number']}\n"
-            f"📍 Status: *{label}*\n\n"
-            f"💬 {update_msg}\n\n"
-            f"Thank you for choosing us! 🙏"
+            f"Job #{job['job_number']} - {job['vehicle_number']}\n"
+            f"Status: *{label}*\n"
+            f"Message: {update_msg}\n\n"
+            f"Thank you! 🙏"
         )
 
 # ============================================================
@@ -584,7 +479,7 @@ class StatusUpdate(BaseModel):
     @classmethod
     def validate_status(cls, v: str) -> str:
         if v not in VALID_STATUSES:
-            raise ValueError(f"Status must be one of: {', '.join(VALID_STATUSES)}")
+            raise ValueError(f"Invalid status: {v}")
         return v
 
 # ============================================================
@@ -598,6 +493,7 @@ async def create_job(data: JobCreate):
         job_id = str(uuid.uuid4())
         job_number = f"JOB-{datetime.now().year}-{str(job_counter).zfill(4)}"
         job_counter += 1
+        
         job = {
             "id": job_id,
             "job_number": job_number,
@@ -622,10 +518,14 @@ async def create_job(data: JobCreate):
         }
         jobs_db[job_id] = job
         save_jobs_to_disk()
+        
+        # Send WhatsApp notification
         asyncio.create_task(send_whatsapp(data.customer_phone, build_message(job, "intake")))
+        
         return job
     except Exception as e:
-        raise HTTPException(500, f"Failed to create job: {str(e)}")
+        logger.error(f"Create job error: {e}")
+        raise HTTPException(500, str(e))
 
 @app.get("/jobs")
 async def get_jobs():
@@ -641,28 +541,40 @@ async def get_job(job_id: str):
 async def update_status(job_id: str, data: StatusUpdate):
     if job_id not in jobs_db:
         raise HTTPException(404, "Job not found")
+    
     try:
         job = jobs_db[job_id]
         old_status = job["status"]
         job["status"] = data.status
         job["updated_at"] = datetime.now().isoformat()
-        if data.diagnosis: job["diagnosis"] = data.diagnosis
-        if data.work_done: job["work_done"] = data.work_done
-        if data.parts_used: job["parts_used"] = data.parts_used
-        if data.final_cost: job["final_cost"] = data.final_cost
-        if data.estimated_delivery: job["estimated_delivery"] = data.estimated_delivery
+        
+        if data.diagnosis:
+            job["diagnosis"] = data.diagnosis
+        if data.work_done:
+            job["work_done"] = data.work_done
+        if data.parts_used:
+            job["parts_used"] = data.parts_used
+        if data.final_cost:
+            job["final_cost"] = data.final_cost
+        if data.estimated_delivery:
+            job["estimated_delivery"] = data.estimated_delivery
+            
         job["updates"].append({
             "old_status": old_status,
             "status": data.status,
             "message": data.message,
             "created_at": datetime.now().isoformat(),
         })
+        
         save_jobs_to_disk()
+        
         msg_type = "ready" if data.status == "ready" else "update"
         asyncio.create_task(send_whatsapp(job["customer_phone"], build_message(job, msg_type, data.message)))
+        
         return {"success": True, "status": data.status}
     except Exception as e:
-        raise HTTPException(500, f"Failed to update status: {str(e)}")
+        logger.error(f"Update status error: {e}")
+        raise HTTPException(500, str(e))
 
 @app.get("/stats")
 async def get_stats():
@@ -674,6 +586,15 @@ async def get_stats():
         "waiting_parts": sum(1 for j in vals if j["status"] == "waiting_parts"),
         "delivered": sum(1 for j in vals if j["status"] == "delivered"),
     }
+
+@app.post("/jobs/backup")
+async def backup_jobs():
+    save_jobs_to_disk()
+    return {"success": True, "count": len(jobs_db)}
+
+@app.get("/jobs/export")
+async def export_jobs():
+    return {"export_date": datetime.now().isoformat(), "total": len(jobs_db), "jobs": list(jobs_db.values())}
 
 # ============================================================
 # HEALTH & UTILITY
@@ -697,14 +618,18 @@ async def ping():
 async def health():
     return {"status": "healthy", "time": datetime.now().isoformat()}
 
-@app.post("/jobs/backup")
-async def backup_jobs():
-    save_jobs_to_disk()
-    return {"success": True, "count": len(jobs_db)}
-
-@app.get("/jobs/export")
-async def export_jobs():
-    return {"export_date": datetime.now().isoformat(), "total": len(jobs_db), "jobs": list(jobs_db.values())}
+@app.get("/debug")
+async def debug():
+    """Debug endpoint to check system status"""
+    return {
+        "status": "running",
+        "time": datetime.now().isoformat(),
+        "qr_available": current_qr_code is not None,
+        "qr_expired": qr_expiry and datetime.now() > qr_expiry if qr_expiry else False,
+        "bridge_url": WHATSAPP_BRIDGE,
+        "whatsapp_enabled": WHATSAPP_ENABLED,
+        "jobs_count": len(jobs_db)
+    }
 
 # ============================================================
 # MAIN
@@ -712,8 +637,10 @@ async def export_jobs():
 
 if __name__ == "__main__":
     import uvicorn
+    port = int(os.getenv("PORT", 4321))
     print(f"\n{'='*50}")
     print(f"🔧 MechTrack API — {SHOP_NAME}")
-    print(f"📱 Bridge  : {WHATSAPP_BRIDGE}")
+    print(f"📱 Bridge: {WHATSAPP_BRIDGE}")
+    print(f"🚪 Port: {port}")
     print(f"{'='*50}\n")
-    uvicorn.run("app:app", host="0.0.0.0", port=4321, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=port)
