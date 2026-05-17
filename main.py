@@ -14,6 +14,9 @@ import logging
 
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 load_dotenv()
+current_qr_code = None
+qr_timestamp = None
+qr_expiry = None
 
 # ============================================================
 # APP INIT
@@ -53,10 +56,6 @@ VALID_STATUSES = list(STATUS_LABELS.keys())
 jobs_db: Dict[str, Dict] = {}
 job_counter = 1
 
-# Store QR code temporarily (in production, use Redis)
-current_qr_code = None
-qr_timestamp = None
-
 # ============================================================
 # PERSISTENCE
 # ============================================================
@@ -91,6 +90,181 @@ def save_jobs_to_disk():
 
 load_jobs_from_disk()
 
+
+@app.post("/whatsapp/push-qr")
+async def push_qr(request: Request):
+    global current_qr_code, qr_timestamp, qr_expiry
+    try:
+        body = await request.json()
+        qr_data = body.get("qr")
+        if qr_data:
+            current_qr_code = qr_data
+            qr_timestamp = datetime.now()
+            qr_expiry = datetime.now() + timedelta(minutes=5)
+            print(f"✅✅✅ QR RECEIVED! Time: {qr_timestamp}")
+            return {"success": True, "timestamp": qr_timestamp.isoformat()}
+        return {"success": False}
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"success": False}
+
+@app.get("/whatsapp/qr-display")
+async def display_qr():
+    """Simple HTML page to display QR"""
+    global current_qr_code, qr_timestamp, qr_expiry
+    
+    if not current_qr_code:
+        return """
+        <html>
+        <body style="background:#080c14;color:white;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh">
+        <div style="text-align:center">
+            <h2>⏳ Waiting for QR Code...</h2>
+            <p>WhatsApp bridge is starting. Please wait 30 seconds.</p>
+            <button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;background:#e8b84b;border:none;border-radius:8px;cursor:pointer">Refresh</button>
+        </div>
+        </body>
+        </html>
+        """
+    
+    # Check if QR expired
+    if qr_expiry and datetime.now() > qr_expiry:
+        return """
+        <html>
+        <body style="background:#080c14;color:white;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh">
+        <div style="text-align:center">
+            <h2>⏰ QR Code Expired</h2>
+            <p>Please refresh to get a new QR code.</p>
+            <button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;background:#e8b84b;border:none;border-radius:8px;cursor:pointer">Get New QR</button>
+        </div>
+        </body>
+        </html>
+        """
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>WhatsApp QR - MechTrack</title>
+        <style>
+            body {{
+                margin: 0;
+                padding: 20px;
+                background: #080c14;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+            }}
+            .container {{
+                background: #0f1623;
+                border-radius: 20px;
+                padding: 40px;
+                text-align: center;
+                border: 1px solid #1e2a42;
+                max-width: 500px;
+            }}
+            h1 {{
+                color: #e8b84b;
+                margin-bottom: 10px;
+            }}
+            .qr-container {{
+                background: white;
+                padding: 20px;
+                border-radius: 16px;
+                display: inline-block;
+                margin: 20px 0;
+            }}
+            img {{
+                width: 250px;
+                height: 250px;
+            }}
+            .steps {{
+                text-align: left;
+                margin: 20px 0;
+                padding: 0 20px;
+            }}
+            .steps li {{
+                margin: 10px 0;
+                color: #8492a8;
+            }}
+            button {{
+                background: #e8b84b;
+                color: #0a0a0a;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                margin-top: 20px;
+            }}
+            button:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(232,184,75,0.3);
+            }}
+            .status {{
+                margin-top: 20px;
+                padding: 10px;
+                background: #141c2e;
+                border-radius: 8px;
+                color: #e8eaf0;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔧 MechTrack WhatsApp</h1>
+            <p>Scan to connect your workshop number</p>
+            <div class="qr-container">
+                <img src="{current_qr_code}" alt="WhatsApp QR Code">
+            </div>
+            <div class="steps">
+                <strong>📱 Steps to connect:</strong>
+                <ul>
+                    <li>1. Open WhatsApp on your phone</li>
+                    <li>2. Tap Menu (⋮) or Settings</li>
+                    <li>3. Select "Linked Devices"</li>
+                    <li>4. Tap "Link a Device"</li>
+                    <li>5. Scan this QR code</li>
+                </ul>
+            </div>
+            <div class="status">
+                ⏱️ QR expires in: <span id="timer">5:00</span>
+                <br>
+                <small>🔄 <a href="#" onclick="location.reload()" style="color:#e8b84b">Refresh page</a> if QR expired</small>
+            </div>
+            <button onclick="location.reload()">⟳ Refresh QR</button>
+        </div>
+        <script>
+            let expiryTime = {int(qr_expiry.timestamp()) if qr_expiry else 0};
+            function updateTimer() {{
+                const now = Math.floor(Date.now() / 1000);
+                const diff = expiryTime - now;
+                if (diff <= 0) {{
+                    document.getElementById('timer').innerHTML = 'Expired! Refresh page';
+                    document.getElementById('timer').style.color = '#ef4444';
+                }} else {{
+                    const mins = Math.floor(diff / 60);
+                    const secs = diff % 60;
+                    document.getElementById('timer').innerHTML = `${{mins}}:${{secs.toString().padStart(2,'0')}}`;
+                }}
+            }}
+            setInterval(updateTimer, 1000);
+            updateTimer();
+        </script>
+    </body>
+    </html>
+    """'''
+
+@app.get("/whatsapp/qr")
+async def get_qr_json():
+    """JSON endpoint for QR"""
+    global current_qr_code
+    if current_qr_code:
+        return {"qr": current_qr_code, "ready": False}
+    return {"qr": None, "ready": False}
 # ============================================================
 # LICENSE HELPERS
 # ============================================================
@@ -271,7 +445,7 @@ async def whatsapp_status():
     """Check if WhatsApp bridge on Render is connected"""
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
-            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/status")
+            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/health")
             data = r.json()
             return {
                 "connected": data.get("ready", False),
@@ -280,90 +454,7 @@ async def whatsapp_status():
                 "bridge_url": WHATSAPP_BRIDGE,
             }
     except Exception as e:
-        return {
-            "connected": False, 
-            "ready": False, 
-            "connecting": False, 
-            "error": str(e),
-            "bridge_url": WHATSAPP_BRIDGE,
-        }
-
-@app.get("/whatsapp/connection-status")
-async def whatsapp_connection_status():
-    """Detailed connection status for QR page"""
-    try:
-        async with httpx.AsyncClient(timeout=8.0) as client:
-            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/status")
-            data = r.json()
-            return {
-                "connected": data.get("ready", False),
-                "ready": data.get("ready", False),
-                "connecting": data.get("connecting", False),
-                "can_send": data.get("ready", False),
-                "bridge_url": WHATSAPP_BRIDGE,
-                "timestamp": datetime.now().isoformat()
-            }
-    except Exception as e:
-        return {
-            "connected": False,
-            "ready": False,
-            "connecting": False,
-            "can_send": False,
-            "error": str(e),
-            "bridge_url": WHATSAPP_BRIDGE,
-            "timestamp": datetime.now().isoformat()
-        }
-
-@app.post("/whatsapp/push-qr")
-async def push_qr(request: Request):
-    """Receive QR code from bridge and store it"""
-    global current_qr_code, qr_timestamp
-    try:
-        body = await request.json()
-        qr_data = body.get("qr")
-        if qr_data:
-            current_qr_code = qr_data
-            qr_timestamp = datetime.now()
-            print(f"✅ QR code received at {qr_timestamp}")
-            return {"success": True, "message": "QR stored"}
-        return {"success": False, "message": "No QR data"}
-    except Exception as e:
-        print(f"⚠️ Error storing QR: {e}")
-        return {"success": False, "error": str(e)}
-
-@app.get("/whatsapp/qr")
-async def get_qr():
-    """Get current QR code for scanning"""
-    global current_qr_code, qr_timestamp
-    
-    # First check if bridge is already connected
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/status")
-            data = r.json()
-            if data.get("ready"):
-                return {"qr": None, "ready": True, "message": "Already connected"}
-    except:
-        pass
-    
-    # Return stored QR if available and not expired (5 minutes)
-    if current_qr_code and qr_timestamp:
-        age = (datetime.now() - qr_timestamp).seconds
-        if age < 300:  # QR expires in 5 minutes
-            return {"qr": current_qr_code, "ready": False, "age": age}
-    
-    # Try to fetch fresh QR from bridge
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            r = await client.get(f"{WHATSAPP_BRIDGE.rstrip('/')}/qr")
-            data = r.json()
-            if data.get("qr"):
-                current_qr_code = data.get("qr")
-                qr_timestamp = datetime.now()
-                return {"qr": current_qr_code, "ready": False}
-            return {"qr": None, "ready": data.get("ready", False), "connecting": data.get("connecting", False)}
-    except Exception as e:
-        return {"qr": None, "ready": False, "error": str(e)}
+        return {"connected": False, "ready": False, "connecting": False, "error": str(e)}
 
 @app.get("/whatsapp/bridge-url")
 async def get_bridge_url():
@@ -400,42 +491,12 @@ async def whatsapp_disconnect():
 @app.post("/whatsapp/reset")
 async def whatsapp_reset():
     """Reset bridge — clears session and generates new QR"""
-    global current_qr_code, qr_timestamp
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             r = await client.post(f"{WHATSAPP_BRIDGE.rstrip('/')}/reset")
-            # Clear stored QR
-            current_qr_code = None
-            qr_timestamp = None
             return {"success": r.status_code == 200, "message": "Bridge reset — new QR generating"}
     except Exception as e:
         return {"success": False, "error": str(e)}
-
-@app.post("/whatsapp/connect-on-demand")
-async def whatsapp_connect_on_demand():
-    """Force bridge to start and generate QR"""
-    try:
-        # First check if already connected
-        status = await whatsapp_status()
-        if status.get("ready"):
-            return {"success": True, "message": "Already connected", "ready": True}
-        
-        # Reset to get new QR
-        await whatsapp_reset()
-        
-        return {"success": True, "message": "Bridge started, QR will be available shortly"}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
-@app.post("/whatsapp/stop-bridge")
-async def whatsapp_stop_bridge():
-    """Stop the bridge completely"""
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            r = await client.post(f"{WHATSAPP_BRIDGE.rstrip('/')}/disconnect")
-            return {"success": r.status_code == 200}
-    except Exception:
-        return {"success": False}
 
 # ============================================================
 # MESSAGE TEMPLATES
