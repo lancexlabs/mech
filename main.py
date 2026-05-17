@@ -3,7 +3,7 @@ Port: 4321
 Run: python app.py
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, Response as FastAPIResponse
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
@@ -74,6 +74,9 @@ job_counter = 1
 # Bridge process management
 bridge_process = None
 bridge_pid = None
+
+# In-memory QR store (pushed from PC bridge)
+whatsapp_qr_store = {"qr": None, "updated_at": None}
 
 # ============================================================
 # PERSISTENCE HELPERS
@@ -321,8 +324,9 @@ async def bridge_health() -> Dict:
 
 
 async def send_whatsapp(phone: str, message: str) -> bool:
-    """Send a message via WhatsApp bridge"""
+    """Send a message via WhatsApp bridge (Render)"""
     if not WHATSAPP_ENABLED:
+        print("⚠️ WhatsApp disabled via env")
         return False
 
     try:
@@ -335,17 +339,30 @@ async def send_whatsapp(phone: str, message: str) -> bool:
             print(f"⚠️ Invalid phone number format: {phone}")
             return False
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            h = await client.get(f"{WHATSAPP_BRIDGE}/health")
-            if h.status_code != 200 or not h.json().get("ready"):
-                print("⚠️ WhatsApp bridge not ready")
+        print(f"📱 Sending WhatsApp to {clean} via {WHATSAPP_BRIDGE}")
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Check bridge health first
+            try:
+                h = await client.get(f"{WHATSAPP_BRIDGE}/health", timeout=10.0)
+                health_data = h.json()
+                print(f"🔍 Bridge health: {health_data}")
+                if h.status_code != 200 or not health_data.get("ready"):
+                    print(f"⚠️ WhatsApp bridge not ready — status: {health_data}")
+                    return False
+            except Exception as he:
+                print(f"⚠️ Bridge health check failed: {he}")
                 return False
 
+            # Send message
             r = await client.post(
                 f"{WHATSAPP_BRIDGE}/send-message",
                 json={"phone": clean, "message": message},
+                timeout=60.0
             )
+            print(f"📤 Send result: {r.status_code} — {r.text}")
             return r.status_code == 200
+
     except Exception as e:
         print(f"⚠️ Failed to send WhatsApp: {e}")
         return False
@@ -373,37 +390,30 @@ async def wait_for_bridge(port=4322, timeout=30):
 async def start_whatsapp_bridge():
     """Start the WhatsApp bridge process on demand"""
     global bridge_process, bridge_pid
-    
+
     try:
-        # Check if bridge is already running
         async with httpx.AsyncClient(timeout=2.0) as client:
             r = await client.get(f"{WHATSAPP_BRIDGE}/health")
             if r.status_code == 200:
-                # Bridge already running, reset it
                 await client.post(f"{WHATSAPP_BRIDGE}/reset")
                 return {"success": True, "message": "Bridge already running, reset initiated", "already_running": True}
     except:
         pass
-    
-    # Stop existing process if any
+
     if bridge_process and bridge_process.poll() is None:
         try:
             bridge_process.terminate()
             await asyncio.sleep(1)
         except:
             pass
-    
-    # Get the directory where this script is located
+
     script_dir = os.path.dirname(os.path.abspath(__file__))
     bridge_script = os.path.join(script_dir, "whatsapp-bridge.js")
-    
-    # Check if bridge script exists
+
     if not os.path.exists(bridge_script):
         return {"success": False, "error": f"Bridge script not found at {bridge_script}"}
-    
-    # Start new bridge process
+
     try:
-        # Use node to run the bridge
         if sys.platform == "win32":
             bridge_process = subprocess.Popen(
                 ["node", bridge_script],
@@ -422,15 +432,14 @@ async def start_whatsapp_bridge():
             )
         bridge_pid = bridge_process.pid
         print(f"✅ Started WhatsApp bridge (PID: {bridge_pid})")
-        
-        # Wait for bridge to be ready
+
         ready = await wait_for_bridge(4322, 30)
-        
+
         if ready:
             return {"success": True, "message": "Bridge started successfully", "pid": bridge_pid}
         else:
             return {"success": False, "error": "Bridge started but not responding"}
-            
+
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -439,7 +448,7 @@ async def start_whatsapp_bridge():
 async def stop_whatsapp_bridge():
     """Stop the WhatsApp bridge process"""
     global bridge_process, bridge_pid
-    
+
     try:
         if bridge_process and bridge_process.poll() is None:
             if sys.platform == "win32":
@@ -455,7 +464,6 @@ async def stop_whatsapp_bridge():
             print("✅ WhatsApp bridge stopped")
             return {"success": True, "message": "Bridge stopped"}
         else:
-            # Try to stop via API
             try:
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     await client.post(f"{WHATSAPP_BRIDGE}/disconnect")
@@ -477,11 +485,11 @@ async def whatsapp_connect_on_demand():
 async def whatsapp_bridge_status():
     """Check bridge process status"""
     global bridge_process, bridge_pid
-    
+
     bridge_running = False
     if bridge_process and bridge_process.poll() is None:
         bridge_running = True
-    
+
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
             r = await client.get(f"{WHATSAPP_BRIDGE}/health")
@@ -495,7 +503,7 @@ async def whatsapp_bridge_status():
                 }
     except:
         pass
-    
+
     return {
         "process_running": bridge_running,
         "bridge_ready": False,
@@ -536,24 +544,42 @@ async def whatsapp_simple_status():
     return {"ready": False, "connecting": False}
 
 
+@app.post("/whatsapp/push-qr")
+async def push_qr(request: Request):
+    """Receives QR from PC bridge and stores in memory — called by whatsapp-bridge.js"""
+    global whatsapp_qr_store
+    try:
+        body = await request.json()
+        whatsapp_qr_store["qr"] = body.get("qr")
+        whatsapp_qr_store["updated_at"] = datetime.now().isoformat()
+        whatsapp_qr_store["tunnel_url"] = body.get("tunnel_url")   # Cloudflare tunnel URL
+        print(f"✅ QR received from bridge at {whatsapp_qr_store['updated_at']}")
+        if whatsapp_qr_store.get("tunnel_url"):
+            print(f"🌐 Bridge tunnel: {whatsapp_qr_store['tunnel_url']}")
+        return {"success": True, "message": "QR stored successfully"}
+    except Exception as e:
+        raise HTTPException(500, f"Failed to store QR: {str(e)}")
+
+
 @app.get("/whatsapp/qr")
 async def whatsapp_qr():
+    """Returns QR from memory store (pushed by PC bridge via Cloudflare Tunnel)"""
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            r = await client.get(f"{WHATSAPP_BRIDGE}/qr")
-            if r.status_code == 200:
-                data = r.json()
-                qr = data.get("qr")
-                if qr and not qr.startswith("data:"):
-                    qr = f"data:image/png;base64,{qr}"
-                return {
-                    "qr": qr,
-                    "ready": data.get("ready", False),
-                    "message": data.get("message", ""),
-                }
-            return {"qr": None, "ready": False, "message": "Bridge returned error"}
+        if whatsapp_qr_store["qr"]:
+            return {
+                "qr": whatsapp_qr_store["qr"],
+                "ready": False,
+                "message": "QR ready to scan",
+                "updated_at": whatsapp_qr_store["updated_at"],
+                "tunnel_url": whatsapp_qr_store.get("tunnel_url")
+            }
+        return {
+            "qr": None,
+            "ready": False,
+            "message": "QR not yet generated — make sure bridge is running on your PC"
+        }
     except Exception as e:
-        return {"qr": None, "ready": False, "message": f"Cannot reach bridge: {e}"}
+        return {"qr": None, "ready": False, "message": str(e)}
 
 
 @app.get("/whatsapp/qr-info")
@@ -566,7 +592,7 @@ async def whatsapp_qr_info():
             return {"qr_available": False, "is_connected": False, "is_connecting": False}
     except Exception as e:
         return {
-            "qr_available": False,
+            "qr_available": whatsapp_qr_store["qr"] is not None,
             "is_connected": False,
             "is_connecting": False,
             "error": str(e),
@@ -583,8 +609,36 @@ async def whatsapp_disconnect():
         return {"success": False}
 
 
-@app.post("/whatsapp/connect")
-async def whatsapp_connect():
+@app.post("/whatsapp/test-send")
+async def test_send_whatsapp(request: Request):
+    """Direct test — send a WhatsApp message to any number"""
+    try:
+        body = await request.json()
+        phone = body.get("phone", "")
+        message = body.get("message", "🔧 MechTrack test message!")
+
+        if not phone:
+            return {"success": False, "error": "Phone number required"}
+
+        print(f"🧪 Test send to {phone}")
+        result = await send_whatsapp(phone, message)
+        return {
+            "success": result,
+            "phone": phone,
+            "bridge_url": WHATSAPP_BRIDGE,
+            "message": "Sent!" if result else "Failed — check Railway logs"
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/whatsapp/bridge-url")
+async def get_bridge_url():
+    """Check what bridge URL is configured"""
+    return {
+        "bridge_url": WHATSAPP_BRIDGE,
+        "whatsapp_enabled": WHATSAPP_ENABLED
+    }
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             r = await client.post(f"{WHATSAPP_BRIDGE}/reset")
