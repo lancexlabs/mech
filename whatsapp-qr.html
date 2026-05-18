@@ -1,367 +1,329 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp QR - MechTrack</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #080c14;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            background: #0f1623;
-            border-radius: 24px;
-            padding: 40px;
-            text-align: center;
-            border: 1px solid #1e2a42;
-            max-width: 500px;
-            width: 100%;
-        }
-        h1 {
-            color: #e8b84b;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            color: #8492a8;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .qr-container {
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            display: inline-block;
-            margin: 20px 0;
-        }
-        .qr-container img {
-            width: 250px;
-            height: 250px;
-            display: block;
-        }
-        .qr-placeholder {
-            width: 250px;
-            height: 250px;
-            background: #141c2e;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #8492a8;
-            font-size: 14px;
-        }
-        .steps {
-            text-align: left;
-            background: #141c2e;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-        }
-        .steps h3 {
-            color: #e8b84b;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-        .steps ol {
-            padding-left: 20px;
-        }
-        .steps li {
-            color: #e8eaf0;
-            margin: 10px 0;
-            font-size: 13px;
-        }
-        .status {
-            padding: 12px;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-size: 13px;
-        }
-        .status.loading {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-        .status.success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.2);
-        }
-        .status.error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-        button {
-            background: #e8b84b;
-            color: #0a0a0a;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.2s;
-        }
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(232, 184, 75, 0.3);
-        }
-        .refresh-btn {
-            background: transparent;
-            border: 1px solid #1e2a42;
-            color: #8492a8;
-            margin-left: 10px;
-        }
-        .refresh-btn:hover {
-            background: #1e2a42;
-            color: white;
-            box-shadow: none;
-        }
-        .timer {
-            font-size: 12px;
-            color: #8492a8;
-            margin-top: 10px;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 11px;
-            color: #4a5570;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Link WhatsApp — MechTrack</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f1115;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      background: #171a21;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 28px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    .logo { font-size: 28px; font-weight: 700; margin-bottom: 6px; letter-spacing: -1px; }
+    .logo span { color: #e8b84b; }
+
+    .subtitle { color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+
+    /* ── Connection Status Panel ── */
+    .conn-panel {
+      background: #0f1115;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .conn-panel-title {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.35); margin-bottom: 12px;
+    }
+    .conn-row {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 10px;
+    }
+    .conn-row:last-child { margin-bottom: 0; }
+    .conn-label { font-size: 13px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 7px; }
+    .conn-badge {
+      font-size: 12px; font-weight: 600;
+      padding: 4px 10px; border-radius: 100px;
+    }
+    .conn-badge.ok       { background: rgba(40,200,100,0.15);  color: #28c864; }
+    .conn-badge.warn     { background: rgba(255,159,10,0.15);   color: #ffb340; }
+    .conn-badge.err      { background: rgba(255,60,60,0.15);    color: #ff4444; }
+    .conn-badge.checking { background: rgba(120,120,255,0.15);  color: #8888ff; }
+    .last-checked { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 10px; text-align: right; }
+
+    /* ── Status badge ── */
+    .status {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: 100px;
+      font-size: 14px; margin-bottom: 20px; transition: all 0.3s;
+    }
+    .status.waiting   { background: rgba(255,159,10,0.12);  color: #ffb340; }
+    .status.loading   { background: rgba(100,100,255,0.12); color: #8888ff; }
+    .status.connected { background: rgba(40,200,100,0.12);  color: #28c864; }
+    .status.error     { background: rgba(255,60,60,0.12);   color: #ff4444; }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── QR Box ── */
+    .qr-box {
+      background: white; border-radius: 22px; padding: 20px;
+      margin-bottom: 16px; min-height: 270px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qr-img { width: 230px; height: 230px; object-fit: contain; border-radius: 14px; display: none; }
+    .qr-placeholder {
+      width: 230px; height: 230px; border-radius: 14px; background: #f3f3f3;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; color: #666; gap: 10px;
+      font-size: 14px; text-align: center; padding: 20px;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid #ddd;
+      border-top: 4px solid #e8b84b; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin-bottom: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .connected-icon { font-size: 60px; margin-bottom: 10px; }
+
+    /* ── Steps ── */
+    .steps { text-align: left; margin-top: 16px; margin-bottom: 24px; }
+    .step { display: flex; gap: 14px; margin-bottom: 16px; }
+    .step-number {
+      min-width: 30px; height: 30px; border-radius: 50%; background: #e8b84b;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: #000;
+    }
+    .step-content h4 { font-size: 15px; margin-bottom: 4px; }
+    .step-content p  { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.6); }
+
+    /* ── Buttons ── */
+    .buttons { display: flex; gap: 12px; }
+    button {
+      flex: 1; border: none; border-radius: 14px;
+      padding: 14px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: 0.2s ease;
+    }
+    .primary-btn { background: #e8b84b; color: #000; }
+    .primary-btn:hover { opacity: 0.9; }
+    .secondary-btn {
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .secondary-btn:hover { background: rgba(255,255,255,0.1); }
+
+    .refresh-info { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 8px; }
+    .footer { margin-top: 24px; font-size: 12px; color: rgba(255,255,255,0.4); }
+
+    @media (max-width: 500px) {
+      .container { padding: 24px; }
+      .buttons { flex-direction: column; }
+      .qr-img, .qr-placeholder { width: 100%; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔧 MechTrack WhatsApp</h1>
-        <div class="subtitle">Connect your workshop number</div>
+<div class="container">
 
-        <div id="qrArea">
-            <div class="qr-placeholder">
-                <div class="spinner"></div>
-                Loading QR...
-            </div>
-        </div>
+  <div class="logo">Mech<span>Track</span></div>
+  <p class="subtitle">Connect your WhatsApp account to send automated customer updates.</p>
 
-        <div id="status" class="status loading">
-            ⏳ Connecting to WhatsApp bridge...
-        </div>
+  <!-- ── Live Connection Status Panel ── -->
+  <div class="conn-panel">
+    <div class="conn-panel-title">🔌 Live Connection Status</div>
 
-        <div class="steps">
-            <h3>📱 How to connect:</h3>
-            <ol>
-                <li>Open WhatsApp on your phone</li>
-                <li>Tap <strong>Menu (⋮)</strong> or <strong>Settings</strong></li>
-                <li>Select <strong>Linked Devices</strong></li>
-                <li>Tap <strong>Link a Device</strong></li>
-                <li>Scan the QR code above</li>
-            </ol>
-        </div>
-
-        <div class="button-group">
-            <button onclick="refreshQR()">⟳ Refresh QR</button>
-            <button class="refresh-btn" onclick="checkStatus()">🔄 Check Status</button>
-        </div>
-
-        <div id="timer" class="timer"></div>
-        <div class="footer">
-            Once connected, WhatsApp will work automatically
-        </div>
+    <div class="conn-row">
+      <span class="conn-label">🌐 Bridge Server</span>
+      <span class="conn-badge checking" id="bridgeBadge">Checking...</span>
     </div>
 
-    <style>
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(232, 184, 75, 0.2);
-            border-top-color: #e8b84b;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 10px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    <div class="conn-row">
+      <span class="conn-label">📱 WhatsApp</span>
+      <span class="conn-badge checking" id="whatsappBadge">Checking...</span>
+    </div>
 
-    <script>
-        // Configuration - Update this with your actual Railway URL
-        const API_URL = 'https://mech-production-30d8.up.railway.app';
-        let refreshInterval = null;
+    <div class="conn-row">
+      <span class="conn-label">☁️ Railway API</span>
+      <span class="conn-badge checking" id="railwayBadge">Checking...</span>
+    </div>
 
-        async function checkStatus() {
-            const statusDiv = document.getElementById('status');
-            
-            try {
-                const response = await fetch(`${API_URL}/whatsapp/status`);
-                const data = await response.json();
-                
-                if (data.ready) {
-                    statusDiv.className = 'status success';
-                    statusDiv.innerHTML = '✅ WhatsApp CONNECTED! Ready to send messages.';
-                    document.getElementById('qrArea').innerHTML = `
-                        <div class="qr-container">
-                            <div style="text-align:center; padding: 60px 20px;">
-                                <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
-                                <div style="color: #22c55e; font-weight: bold;">Connected!</div>
-                                <div style="color: #8492a8; font-size: 12px; margin-top: 10px;">
-                                    WhatsApp is ready
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    if (refreshInterval) clearInterval(refreshInterval);
-                    return;
-                }
-                
-                if (data.connecting) {
-                    statusDiv.className = 'status loading';
-                    statusDiv.innerHTML = '🔄 Connecting to WhatsApp bridge...';
-                } else {
-                    statusDiv.className = 'status loading';
-                    statusDiv.innerHTML = '📱 Waiting for QR code to load...';
-                }
-                
-                // Try to get QR
-                await loadQR();
-                
-            } catch (error) {
-                statusDiv.className = 'status error';
-                statusDiv.innerHTML = `❌ Cannot connect to API: ${error.message}<br><small>Make sure Railway app is running</small>`;
-            }
-        }
+    <div class="last-checked" id="lastChecked">Checking now...</div>
+  </div>
 
-        async function loadQR() {
-            try {
-                const response = await fetch(`${API_URL}/whatsapp/qr`);
-                const data = await response.json();
-                
-                if (data.qr) {
-                    document.getElementById('qrArea').innerHTML = `
-                        <div class="qr-container">
-                            <img src="${data.qr}" alt="WhatsApp QR Code">
-                        </div>
-                    `;
-                    
-                    const statusDiv = document.getElementById('status');
-                    statusDiv.className = 'status loading';
-                    statusDiv.innerHTML = '📱 QR Ready! Scan with WhatsApp on your phone';
-                    
-                    if (data.expires_at) {
-                        updateTimer(data.expires_at);
-                        startTimer(data.expires_at);
-                    }
-                } else if (data.ready) {
-                    document.getElementById('qrArea').innerHTML = `
-                        <div class="qr-container">
-                            <div style="text-align:center; padding: 60px 20px;">
-                                <div style="font-size: 48px;">✅</div>
-                                <div style="color: #22c55e;">Already Connected!</div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    document.getElementById('qrArea').innerHTML = `
-                        <div class="qr-placeholder">
-                            <div>
-                                <div class="spinner"></div>
-                                <div style="margin-top: 10px;">Generating QR...</div>
-                            </div>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                document.getElementById('qrArea').innerHTML = `
-                    <div class="qr-placeholder">
-                        <div style="color: #ef4444;">
-                            ❌ Error loading QR<br>
-                            <small>${error.message}</small>
-                        </div>
-                    </div>
-                `;
-            }
-        }
+  <!-- Status badge -->
+  <div class="status loading" id="statusBadge">
+    <div class="dot"></div>
+    <span id="statusText">Loading QR...</span>
+  </div>
 
-        function updateTimer(expiryISO) {
-            const expiry = new Date(expiryISO);
-            const timerDiv = document.getElementById('timer');
-            
-            function update() {
-                const now = new Date();
-                const diff = expiry - now;
-                
-                if (diff <= 0) {
-                    timerDiv.innerHTML = '⏰ QR expired - Click Refresh';
-                    timerDiv.style.color = '#ef4444';
-                } else {
-                    const mins = Math.floor(diff / 60000);
-                    const secs = Math.floor((diff % 60000) / 1000);
-                    timerDiv.innerHTML = `⏱️ QR expires in: ${mins}:${secs.toString().padStart(2, '0')}`;
-                    timerDiv.style.color = '#8492a8';
-                }
-            }
-            
-            update();
-            if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(update, 1000);
-        }
+  <!-- QR Box -->
+  <div class="qr-box">
+    <div class="qr-placeholder" id="qrPlaceholder">
+      <div class="spinner"></div>
+      <span>Fetching QR code...</span>
+      <small>Render bridge starting up, wait 30 seconds...</small>
+    </div>
+    <img class="qr-img" id="qrImage" alt="WhatsApp QR Code" />
+  </div>
 
-        function startTimer(expiryISO) {
-            if (refreshInterval) clearInterval(refreshInterval);
-            
-            const checkExpiry = setInterval(() => {
-                const expiry = new Date(expiryISO);
-                const now = new Date();
-                if (now >= expiry) {
-                    clearInterval(checkExpiry);
-                    refreshQR();
-                }
-            }, 1000);
-        }
+  <div class="refresh-info" id="refreshInfo">Auto-refreshes every 10 seconds</div>
 
-        async function refreshQR() {
-            const statusDiv = document.getElementById('status');
-            statusDiv.className = 'status loading';
-            statusDiv.innerHTML = '🔄 Resetting QR, please wait...';
-            
-            try {
-                // Reset bridge
-                await fetch(`${API_URL}/whatsapp/reset`, { method: 'POST' });
-                
-                // Wait a moment
-                setTimeout(() => {
-                    loadQR();
-                    checkStatus();
-                }, 2000);
-            } catch (error) {
-                statusDiv.innerHTML = `❌ Reset failed: ${error.message}`;
-            }
-        }
+  <div class="steps">
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <h4>Open WhatsApp</h4>
+        <p>Open WhatsApp on your mobile device.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <h4>Linked Devices</h4>
+        <p>Go to Settings → Linked Devices → Link a Device.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <h4>Scan QR</h4>
+        <p>Scan the QR code shown above to connect instantly.</p>
+      </div>
+    </div>
+  </div>
 
-        // Auto refresh every 10 seconds
-        setInterval(() => {
-            if (document.visibilityState === 'visible') {
-                checkStatus();
-            }
-        }, 10000);
+  <div class="buttons">
+    <button class="primary-btn" onclick="fetchQR()">🔄 Refresh QR</button>
+    <button class="secondary-btn" onclick="history.back()">Back</button>
+  </div>
 
-        // Start
-        checkStatus();
-    </script>
+  <div class="footer">
+    MechTrack v2.0 <br>
+    Made with ❤️ by LanceX Labs
+  </div>
+
+</div>
+<script>
+  const BRIDGE  = "https://whatsapp-bridge-7n8j.onrender.com";
+  const RAILWAY = "https://mech-production-30d8.up.railway.app";
+
+  const qrImage       = document.getElementById('qrImage');
+  const qrPlaceholder = document.getElementById('qrPlaceholder');
+  const statusBadge   = document.getElementById('statusBadge');
+  const statusText    = document.getElementById('statusText');
+  const refreshInfo   = document.getElementById('refreshInfo');
+  const bridgeBadge   = document.getElementById('bridgeBadge');
+  const whatsappBadge = document.getElementById('whatsappBadge');
+  const railwayBadge  = document.getElementById('railwayBadge');
+  const lastChecked   = document.getElementById('lastChecked');
+
+  let pollInterval = null;
+
+  function setBadge(el, type, text) {
+    el.className = `conn-badge ${type}`;
+    el.textContent = text;
+  }
+
+  async function checkConnectionStatus() {
+    // 1. Bridge server + WhatsApp
+    try {
+      const r = await fetch(`${BRIDGE}/health`, { signal: AbortSignal.timeout(6000) });
+      const d = await r.json();
+      setBadge(bridgeBadge, 'ok', '✅ Online');
+
+      if (d.ready) {
+        setBadge(whatsappBadge, 'ok', '✅ Connected');
+      } else if (d.connecting) {
+        setBadge(whatsappBadge, 'warn', '⏳ Connecting...');
+      } else if (d.qr_available) {
+        setBadge(whatsappBadge, 'warn', '📱 Scan QR');
+      } else {
+        setBadge(whatsappBadge, 'err', '❌ Not linked');
+      }
+    } catch (e) {
+      setBadge(bridgeBadge,   'err', '❌ Offline');
+      setBadge(whatsappBadge, 'err', '❌ Unreachable');
+    }
+
+    // 2. Railway API
+    try {
+      const r = await fetch(`${RAILWAY}/health`, { signal: AbortSignal.timeout(6000) });
+      setBadge(railwayBadge, r.ok ? 'ok' : 'warn', r.ok ? '✅ Online' : `⚠️ ${r.status}`);
+    } catch (e) {
+      setBadge(railwayBadge, 'err', '❌ Offline');
+    }
+
+    lastChecked.textContent = `Last checked: ${new Date().toLocaleTimeString('en-IN')}`;
+  }
+
+  function setStatus(type, text) {
+    statusBadge.className = `status ${type}`;
+    statusText.textContent = text;
+  }
+
+  function showQR(base64) {
+    qrImage.src = base64;
+    qrImage.style.display = 'block';
+    qrPlaceholder.style.display = 'none';
+    setStatus('waiting', 'Waiting for scan...');
+    refreshInfo.textContent = 'Auto-refreshes every 10 seconds';
+  }
+
+  function showConnected() {
+    qrImage.style.display = 'none';
+    qrPlaceholder.style.display = 'flex';
+    qrPlaceholder.innerHTML = `
+      <div class="connected-icon">✅</div>
+      <strong style="color:#28c864;font-size:16px;">WhatsApp Connected!</strong>
+      <small style="color:#666;">You can close this page</small>
+    `;
+    setStatus('connected', 'Connected!');
+    refreshInfo.textContent = 'WhatsApp is linked successfully';
+    setBadge(whatsappBadge, 'ok', '✅ Connected');
+    if (pollInterval) clearInterval(pollInterval);
+  }
+
+  function showError(msg) {
+    qrImage.style.display = 'none';
+    qrPlaceholder.style.display = 'flex';
+    qrPlaceholder.innerHTML = `
+      <div style="font-size:40px;margin-bottom:10px;">⚠️</div>
+      <span>${msg}</span>
+      <small>Render bridge starting up, wait 30 seconds...</small>
+    `;
+    setStatus('error', 'Bridge not reachable');
+  }
+
+  async function fetchQR() {
+    try {
+      const res  = await fetch(`${BRIDGE}/qr`);
+      const data = await res.json();
+      if (data.ready === true) { showConnected(); return; }
+      if (data.qr) { showQR(data.qr); }
+      else { showError('QR not yet generated'); }
+    } catch (err) {
+      showError('Cannot reach server');
+    }
+  }
+
+  // Init
+  fetchQR();
+  checkConnectionStatus();
+  pollInterval = setInterval(fetchQR, 10000);
+  setInterval(checkConnectionStatus, 15000);
+</script>
 </body>
 </html>
