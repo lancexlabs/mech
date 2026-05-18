@@ -321,13 +321,29 @@
     setStatus('error', 'Bridge not reachable');
   }
 
+  let lastQrTimestamp = null;
+
   async function fetchQR() {
     try {
       const res  = await fetch(`${BRIDGE}/qr`);
       const data = await res.json();
-      if (data.ready === true) { showConnected(); return; }
-      if (data.qr) { showQR(data.qr); }
-      else { showError('QR not yet generated'); }
+
+      if (data.ready === true) {
+        showConnected();
+        return;
+      }
+
+      if (data.qr) {
+        // ✅ Only update image if QR actually changed (new QR from bridge)
+        const newTimestamp = data.timestamp || data.qr.slice(-20);
+        if (newTimestamp !== lastQrTimestamp) {
+          lastQrTimestamp = newTimestamp;
+          showQR(data.qr);
+          console.log('🔄 New QR loaded');
+        }
+      } else {
+        showError('QR not yet generated');
+      }
     } catch (err) {
       showError('Cannot reach server');
     }
