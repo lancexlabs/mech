@@ -238,7 +238,7 @@
   }
 
   async function checkConnectionStatus() {
-    // 1. Bridge server + WhatsApp
+    // 1. Bridge server + WhatsApp — check Render bridge directly
     try {
       const r = await fetch(`${BRIDGE}/health`, { signal: AbortSignal.timeout(6000) });
       const d = await r.json();
@@ -246,6 +246,7 @@
 
       if (d.ready) {
         setBadge(whatsappBadge, 'ok', '✅ Connected');
+        showConnected();
       } else if (d.connecting) {
         setBadge(whatsappBadge, 'warn', '⏳ Connecting...');
       } else if (d.qr_available) {
@@ -254,8 +255,21 @@
         setBadge(whatsappBadge, 'err', '❌ Not linked');
       }
     } catch (e) {
-      setBadge(bridgeBadge,   'err', '❌ Offline');
-      setBadge(whatsappBadge, 'err', '❌ Unreachable');
+      // Fallback: check Railway status if Render unreachable
+      try {
+        const r2 = await fetch(`${RAILWAY}/whatsapp/status`, { signal: AbortSignal.timeout(6000) });
+        const d2 = await r2.json();
+        setBadge(bridgeBadge, 'warn', '⚠️ Slow');
+        if (d2.ready) {
+          setBadge(whatsappBadge, 'ok', '✅ Connected');
+          showConnected();
+        } else {
+          setBadge(whatsappBadge, 'warn', '⏳ Connecting...');
+        }
+      } catch (e2) {
+        setBadge(bridgeBadge,   'err', '❌ Offline');
+        setBadge(whatsappBadge, 'err', '❌ Unreachable');
+      }
     }
 
     // 2. Railway API
@@ -323,7 +337,7 @@
   fetchQR();
   checkConnectionStatus();
   pollInterval = setInterval(fetchQR, 10000);
-  setInterval(checkConnectionStatus, 15000);
+  setInterval(checkConnectionStatus, 5000);
 </script>
 </body>
 </html>
