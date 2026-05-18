@@ -32,10 +32,10 @@ SHOP_NAME            = os.getenv("SHOP_NAME", "MechTrack Workshop")
 WHATSAPP_ENABLED     = os.getenv("WHATSAPP_ENABLED", "true").lower() == "true"
 
 # Twilio credentials (set these in Railway environment variables)
-TWILIO_ACCOUNT_SID   = os.getenv("TWILIO_ACCOUNT_SID", "")
-TWILIO_AUTH_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "")
+TWILIO_ACCOUNT_SID   = os.getenv("TWILIO_ACCOUNT_SID", "AC105398e97ed374516ac82287df045c17")
+TWILIO_AUTH_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "f63d0219adc6259daa5e6da648168639")
 # e.g. "whatsapp:+14155238886" (Twilio sandbox) or your approved sender number
-TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
+TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "whatsapp:+19786375059")
 
 LICENSE_FILE  = "licenses.json"
 JOBS_FILE     = "jobs.json"
